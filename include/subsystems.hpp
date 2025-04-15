@@ -2,7 +2,6 @@
 
 #include "EZ-Template/api.hpp"
 #include "api.h"
-#include "pros/optical.hpp"
 
 extern Drive chassis;
 
