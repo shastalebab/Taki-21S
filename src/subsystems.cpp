@@ -46,7 +46,7 @@ void setDunkerOp() {
 		dunkerPreset = true;
 		if(dunker.get_position() > 300) dunkerState = false;
 		if(dunkerState)
-			setDunker(245);
+			setDunker(189);
 		else
 			setDunker(10);
 	} else {
