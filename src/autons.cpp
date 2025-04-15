@@ -1,3 +1,4 @@
+#include "autons.hpp"
 #include "EZ-Template/util.hpp"
 #include "drive.hpp"
 #include "main.h"  // IWYU pragma: keep
@@ -51,42 +52,50 @@ void default_constants() {
 }
 
 void testauto() {
+  allianceColor = Colors::RED;
+  setIntake(127);
+  setMogo(true);
+  pros::delay(1000000);
+}
+
+void sixring() {
 	allianceColor = Colors::RED;
 	setPosition(48, 20, 180);
 	// grab mogo
 	moveToPoint({48, 44}, rev, 80);
 	pidWait(Wait::CHAIN);
+  setMogo(true);
 	setIntake(127);
 	// sweep ring rush rings
 	pidWait(Wait::QUICK);
-	moveToPoint({35, 64}, fwd, 90);
-  pidWait(Wait::QUICK);
-	moveToPoint({17, 64}, fwd, 90);
-	pidWait(Wait::CHAIN);
-	swingSet(ez::RIGHT_SWING, -45, 127, 90, ez::cw);
+	moveToPoint({38, 58}, fwd, 70);
+  pidWait(Wait::CHAIN);
+	moveToPoint({14, 59}, fwd, 70);
+	pidWait(Wait::WAIT);
+	swingSet(ez::RIGHT_SWING, -75, 127, 70, ez::cw);
 	pidWait(Wait::CHAIN);
 	// grab bottom ring of ring stack, then score corner
-	moveToPoint({24, 48}, fwd, 127);
+	moveToPoint({28, 42}, fwd, 100);
 	pidWait(Wait::CHAIN);
-	moveToPoint({24, 24}, fwd, 127);
+	moveToPoint({28, 24}, fwd, 100);
 	pidWait(Wait::CHAIN);
 	turnSet(-135, 127);
 	pidWait(Wait::CHAIN);
   // score corner
-	moveToPoint({6, 6}, fwd, 80);
+	driveSet(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, {6, 6}, fwd), 90);
   pidWait(Wait::WAIT);
-	driveSet(-9, 80);
+	driveSet(-20, 80);
 	pidWait(Wait::QUICK);
 	// grab mid top ring
 	turnSet(90, 100);
   pidWait(Wait::CHAIN);
-  driveSet(66, 127, true);
-  pidWaitUntil(50);
+  driveSet(66, 100, true);
+  pidWaitUntil(30);
   chassis.pid_speed_max_set(60);
 	pidWait(Wait::CHAIN);
   // touch ladder
-	swingSet(ez::RIGHT_SWING, -30, 127);
-	driveSet(20, 127);
+	swingSet(ez::RIGHT_SWING, 225, 127, 60);
+  pidWait(Wait::WAIT);
 }
 
 ///

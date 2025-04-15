@@ -63,7 +63,8 @@ void initialize() {
 
   // Autonomous Selector using LLEMU
   ez::as::auton_selector.autons_add({
-      {"6 ring", testauto},
+      {"6 ring", sixring},
+      {"test color sort", testauto}
   });
 
 	// Initialize chassis and auton selector

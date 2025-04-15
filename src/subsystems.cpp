@@ -83,8 +83,15 @@ void discard() {
 	discarding = false;
 }
 
+lv_obj_t * colorind = lv_obj_create(lv_scr_act());
+const lv_color_t colorList[5] = {lv_color_hex(0xaa2f17), lv_color_hex(0x1744aa), lv_color_hex(0x575757)};
+
 void colorSet(Colors color) {
 	// Set on screen elements to the corresponding color
+	lv_obj_align(colorind, LV_ALIGN_TOP_RIGHT, -36, 36);
+	lv_obj_set_style_radius(colorind, 96, LV_PART_MAIN);
+	lv_obj_move_foreground(colorind);
+	lv_obj_set_style_bg_color(colorind, colorList[(int)color], LV_PART_MAIN);
 }
 
 Colors colorGet() {
@@ -92,7 +99,7 @@ Colors colorGet() {
 	if(colorSens.get_proximity() > 100) {
 		if((hue > 340 && hue < 360) || (hue > 0 && hue < 15))
 			return Colors::RED;
-		else if(hue > 210 && hue < 225)
+		else if(hue > 200 && hue < 225)
 			return Colors::BLUE;
 	}
 	return Colors::NEUTRAL;
@@ -113,6 +120,7 @@ void colorTask() {
 		if(!jamState && pros::competition::is_autonomous() && !pros::competition::is_disabled()) {
 			if(colorCompare(color) && !discarding) {
 				discarding = true;
+				discard();
 			} else if(discarding) {
 				if(hookSens.get_value() < 2800 && util::sgn(intake.get_actual_velocity()) == 1) discard();
 			}

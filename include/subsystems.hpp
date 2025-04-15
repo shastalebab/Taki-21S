@@ -9,7 +9,7 @@ extern Drive chassis;
 
 inline ez::PID dunkerPID(1.35, .04, .75, 0, "dunker");
 
-inline pros::Optical colorSens(20);
+inline pros::Optical colorSens(11);
 inline pros::Distance distanceSens(19);
 inline pros::adi::LineSensor hookSens('B');
 

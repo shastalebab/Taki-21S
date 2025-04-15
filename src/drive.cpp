@@ -215,10 +215,10 @@ void moveToPoint(Coordinate newpoint, ez::drive_directions direction, int speed)
 	bool slew_state = false;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
-			if(getDistance({currentPoint.x, currentPoint.y}, newpoint, direction) * okapi::inch > 24_in && speed > 90) slew_state = true;
-			chassis.pid_turn_set(getTheta({currentPoint.x, currentPoint.y}, newpoint, direction) * okapi::degree, speed);
+			if(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * okapi::inch > 24_in && speed > 90) slew_state = true;
+			chassis.pid_turn_set(((getTheta({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * -1) + 90) * okapi::degree, speed);
 			chassis.pid_wait_quick_chain();
-			chassis.pid_drive_set(getDistance({currentPoint.x, currentPoint.y}, newpoint, direction) * okapi::inch, speed, slew_state);
+			chassis.pid_drive_set(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * okapi::inch, speed, slew_state);
 			break;
 		case AutonMode::ODOM:
 			chassis.pid_odom_set({{newpoint.x * okapi::inch, newpoint.y * okapi::inch}, fwd, speed});
@@ -229,6 +229,7 @@ void moveToPoint(Coordinate newpoint, ez::drive_directions direction, int speed)
 			break;
 	}
 	currentPoint.t = (getTheta({currentPoint.x, currentPoint.y}, newpoint, direction) * -1) + 90;
+    cout << currentPoint.t << endl;
 	currentPoint.x = newpoint.x;
 	currentPoint.y = newpoint.y;
 	currentPoint.speed = speed;
@@ -241,10 +242,10 @@ void moveToPoint(Coordinate currentpoint, Coordinate newpoint, ez::drive_directi
 	bool slew_state = false;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
-			if(getDistance(currentpoint, newpoint, direction) * okapi::inch > 24_in && speed > 90) slew_state = true;
-			chassis.pid_turn_set(getTheta(currentpoint, newpoint, direction) * okapi::degree, speed);
+			if(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * okapi::inch > 24_in && speed > 90) slew_state = true;
+			chassis.pid_turn_set(((getTheta({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * -1) + 90) * okapi::degree, speed);
 			chassis.pid_wait_quick_chain();
-			chassis.pid_drive_set(getDistance(currentpoint, newpoint, direction) * okapi::inch, speed, slew_state);
+			chassis.pid_drive_set(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * okapi::inch, speed, slew_state);
 			break;
 		case AutonMode::ODOM:
 			chassis.pid_odom_set({{newpoint.x * okapi::inch, newpoint.y * okapi::inch}, fwd, speed});
