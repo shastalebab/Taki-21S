@@ -1,4 +1,5 @@
 #include "main.h"  // IWYU pragma: keep
+#include "pros/misc.h"
 
 // Values to determine dunker behavior
 bool dunkerPreset = false;
@@ -13,6 +14,7 @@ bool dunkerState = 0;
 // Internal states to avoid tasks clashing
 bool jamState = false;
 bool discarding = false;
+bool taring = false;
 
 //
 // Wrappers
@@ -26,6 +28,8 @@ void setIntake(int speed) {
 void setDunker(int position) { dunkerPID.target_set(position); }
 
 void setMogo(bool state) { mogomech.set(state); }
+
+void tareDunker() { taring = true; }
 
 //
 // Operator Control
@@ -72,8 +76,6 @@ void setDunkerOp() {
 		setDunker(10);
 }
 
-void tareDunker() { taring = true; }
-//TARING DECLARED!!!! :)
 void setMogoOp() { mogomech.button_toggle(master.get_digital(pros::E_CONTROLLER_DIGITAL_Y)); }
 
 //
@@ -87,7 +89,7 @@ void discard() {
 	discarding = false;
 }
 
-lv_obj_t * colorind = lv_obj_create(lv_scr_act());
+lv_obj_t* colorind = lv_obj_create(lv_scr_act());
 const lv_color_t colorList[5] = {lv_color_hex(0xaa2f17), lv_color_hex(0x1744aa), lv_color_hex(0x575757)};
 
 void colorSet(Colors color) {
@@ -138,7 +140,7 @@ void colorTask() {
 //
 
 void mogoTask() {
-    while(true) {
+	while(true) {
 		if(pros::competition::is_autonomous() && mogoState == AutoMogo::PRIMED) {
 			if(distanceSens.get() < 40) {
 				mogomech.set(true);
@@ -152,8 +154,20 @@ void mogoTask() {
 void dunkerTask() {
 	int taretime = 0;
 	while(true) {
-		if(usingDunkerTarget) dunker.move(dunkerPID.compute(dunker.get_position()));
-		pros::delay(10);
+		if(taring) {
+			dunker.move(-127);
+			if(abs(dunker.get_actual_velocity()) < 5) taretime++;
+			if(taretime > 10) {
+				dunker.move(0);
+				pros::delay(10);
+				dunker.set_zero_position(-60);
+				setDunker(10);
+				taretime = 0;
+				taring = false;
+			} else if(usingDunkerTarget)
+				dunker.move(dunkerPID.compute(dunker.get_position()));
+			pros::delay(10);
+		}
 	}
 }
 

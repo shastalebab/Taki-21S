@@ -21,6 +21,7 @@ inline ez::Piston mogomech('A');
 void setIntake(int speed);
 void setDunker(int position);
 void setMogo(bool state);
+void tareDunker();
 
 void setIntakeOp();
 void setDunkerOp();
