@@ -44,11 +44,13 @@ void setDunkerOp() {
 	if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
 		dunkerState = !dunkerState;
 		dunkerPreset = true;
-		if(dunker.get_position() > 300) dunkerState = false;
+		if(dunker.get_position() > 300) dunkerState = true;
 		if(dunkerState)
-			setDunker(189);
+			setDunker(100);
 		else
-			setDunker(10);
+			setDunker(10); 
+	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
+			tareDunker();
 	} else {
 		if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
 			dunker.move(127);
@@ -70,6 +72,8 @@ void setDunkerOp() {
 		setDunker(10);
 }
 
+void tareDunker() { taring = true; }
+//TARING DECLARED!!!! :)
 void setMogoOp() { mogomech.button_toggle(master.get_digital(pros::E_CONTROLLER_DIGITAL_Y)); }
 
 //

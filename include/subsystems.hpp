@@ -24,6 +24,9 @@ void setMogo(bool state);
 
 void setIntakeOp();
 void setDunkerOp();
+
+void tareDunker();
+
 void setMogoOp();
 
 void colorTask();
