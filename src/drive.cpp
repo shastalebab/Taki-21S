@@ -23,7 +23,7 @@ double getTheta(Coordinate point1, Coordinate point2, ez::drive_directions direc
 	auto new_direction = direction == rev ? 180 : 0;
 	double errorX = point2.x - point1.x;
 	double errorY = point2.y - point1.y;
-	return ((atan2(errorY, errorX) * 180 / M_PI) + new_direction);
+	return ((atan2(errorX, errorY) * 180 / M_PI) + new_direction);
 }
 
 Coordinate getArc(Coordinate startpoint, double right, double left, double distance) {
@@ -114,8 +114,8 @@ std::vector<Coordinate> injectPath(std::vector<Coordinate> coordList, double loo
 			} else if(coordList[i + 1].movement == MovementType::DRIVE) {
 				ez::drive_directions dir = coordList[i].x > coordList[i + 1].x ? rev : fwd;
 				double angle = getTheta(coordList[i], coordList[i + 1], dir);
-				double errorX = lookAhead * (cos(angle * M_PI / 180));
-				double errorY = lookAhead * (sin(angle * M_PI / 180));
+				double errorX = lookAhead * (sin(angle * M_PI / 180));
+				double errorY = lookAhead * (cos(angle * M_PI / 180));
 				Coordinate newDist = coordList[i];
 				injectedList.push_back(coordList[i]);
 				while(getDistance(coordList[i], newDist, fwd) < getDistance(coordList[i], coordList[i + 1], fwd)) {
@@ -174,8 +174,6 @@ void pidWait(Wait type) {
 					break;
 			}
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
@@ -187,8 +185,6 @@ void pidWaitUntil(double distance) {
 		case AutonMode::ODOM:
 			chassis.pid_wait_until(distance * okapi::inch);
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
@@ -200,8 +196,17 @@ void pidWaitUntil(Coordinate coordinate) {
 		case AutonMode::ODOM:
 			chassis.pid_wait_until({coordinate.x * okapi::inch, coordinate.y * okapi::inch});
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
+		default:
+			break;
+	}
+}
+
+void delayMillis(int millis) {
+    switch(autonMode) {
+		case AutonMode::PLAIN:
+		case AutonMode::ODOM:
+			pros::delay(millis);
+			break;
 		default:
 			break;
 	}
@@ -216,20 +221,17 @@ void moveToPoint(Coordinate newpoint, ez::drive_directions direction, int speed)
 	switch(autonMode) {
 		case AutonMode::PLAIN:
 			if(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * okapi::inch > 24_in && speed > 90) slew_state = true;
-			chassis.pid_turn_set(((getTheta({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * -1) + 90) * okapi::degree, speed);
+			chassis.pid_turn_set((getTheta({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction)) * okapi::degree, speed);
 			chassis.pid_wait_quick_chain();
 			chassis.pid_drive_set(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * okapi::inch, speed, slew_state);
 			break;
 		case AutonMode::ODOM:
 			chassis.pid_odom_set({{newpoint.x * okapi::inch, newpoint.y * okapi::inch}, fwd, speed});
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
-	currentPoint.t = (getTheta({currentPoint.x, currentPoint.y}, newpoint, direction) * -1) + 90;
-    cout << currentPoint.t << endl;
+	currentPoint.t = getTheta({currentPoint.x, currentPoint.y}, newpoint, direction);
 	currentPoint.x = newpoint.x;
 	currentPoint.y = newpoint.y;
 	currentPoint.speed = speed;
@@ -243,21 +245,19 @@ void moveToPoint(Coordinate currentpoint, Coordinate newpoint, ez::drive_directi
 	switch(autonMode) {
 		case AutonMode::PLAIN:
 			if(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * okapi::inch > 24_in && speed > 90) slew_state = true;
-			chassis.pid_turn_set(((getTheta({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * -1) + 90) * okapi::degree, speed);
+			chassis.pid_turn_set((getTheta({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction)) * okapi::degree, speed);
 			chassis.pid_wait_quick_chain();
 			chassis.pid_drive_set(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, newpoint, direction) * okapi::inch, speed, slew_state);
 			break;
 		case AutonMode::ODOM:
 			chassis.pid_odom_set({{newpoint.x * okapi::inch, newpoint.y * okapi::inch}, fwd, speed});
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
 	currentPoint.x += newpoint.x - currentpoint.x;
 	currentPoint.y += newpoint.y - currentpoint.y;
-	currentPoint.t = (getTheta({currentPoint.x, currentPoint.y}, newpoint, direction) * -1) + 90;
+	currentPoint.t = getTheta({currentPoint.x, currentPoint.y}, newpoint, direction);
 	currentPoint.speed = speed;
 	currentPoint.facing = direction;
 	currentPoint.movement = MovementType::DRIVE;
@@ -269,8 +269,8 @@ void moveToPoint(Coordinate currentpoint, Coordinate newpoint, ez::drive_directi
 //
 
 void driveSet(double distance, int speed, bool slew) {
-	double errorX = distance * (cos(chassis.odom_theta_get() * M_PI / 180));
-	double errorY = distance * (sin(chassis.odom_theta_get() * M_PI / 180));
+	double errorX = distance * (sin(chassis.odom_theta_get() * M_PI / 180));
+	double errorY = distance * (cos(chassis.odom_theta_get() * M_PI / 180));
 	ez::drive_directions direction = distance < 0 ? rev : fwd;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
@@ -279,11 +279,9 @@ void driveSet(double distance, int speed, bool slew) {
 		case AutonMode::ODOM:
 			chassis.pid_odom_set(distance * okapi::inch, speed, false);
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
-			errorX = distance * (cos((currentPoint.movement == MovementType::TURN ? currentPoint.t - 90 : currentPoint.t) * M_PI / 180));
-			errorY = distance * (sin((currentPoint.movement == MovementType::TURN ? currentPoint.t - 90 : currentPoint.t) * M_PI / 180));
+			errorX = distance * (sin(currentPoint.t * M_PI / 180));
+			errorY = distance * (cos(currentPoint.t * M_PI / 180));
 			break;
 	}
 	currentPoint.x += errorX;
@@ -295,8 +293,8 @@ void driveSet(double distance, int speed, bool slew) {
 }
 
 void driveSet(double distance, int speed) {
-	double errorX = distance * (cos(chassis.odom_theta_get() * M_PI / 180));
-	double errorY = distance * (sin(chassis.odom_theta_get() * M_PI / 180));
+	double errorX = distance * (sin(chassis.odom_theta_get() * M_PI / 180));
+	double errorY = distance * (cos(chassis.odom_theta_get() * M_PI / 180));
 	ez::drive_directions direction = distance < 0 ? rev : fwd;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
@@ -305,11 +303,9 @@ void driveSet(double distance, int speed) {
 		case AutonMode::ODOM:
 			chassis.pid_odom_set(distance * okapi::inch, speed, false);
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
-			errorX = distance * (cos((currentPoint.movement == MovementType::TURN ? currentPoint.t - 90 : currentPoint.t) * M_PI / 180));
-			errorY = distance * (sin((currentPoint.movement == MovementType::TURN ? currentPoint.t - 90 : currentPoint.t) * M_PI / 180));
+			errorX = distance * (sin(currentPoint.t * M_PI / 180));
+			errorY = distance * (cos(currentPoint.t * M_PI / 180));
 			break;
 	}
 	currentPoint.x += errorX;
@@ -330,8 +326,6 @@ void turnSet(double theta, int speed) {
 		case AutonMode::ODOM:
 			chassis.pid_turn_set(theta * okapi::degree, speed);
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
@@ -350,8 +344,6 @@ void swingSet(ez::e_swing side, double theta, double main, double opp, ez::e_ang
 		case AutonMode::ODOM:
 			chassis.pid_swing_set(side, theta * okapi::degree, main, opp, behavior);
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
@@ -364,7 +356,8 @@ void swingSet(ez::e_swing side, double theta, double main, double opp, ez::e_ang
 	}
 	if(!swingtype && currentPoint.t < 0) theta -= 180;
 	theta = fmod(theta, 360);
-	currentPoint = getArcFromTheta(currentPoint, left, right, swingtype ? theta + 90 : theta - 90);
+	double theta_bound = (currentPoint.t < 0 ? currentPoint.t + 360 : currentPoint.t) - (theta < 0 ? theta + 360 : theta);
+	currentPoint = getArcFromTheta(currentPoint, left, right, abs(theta_bound) < 90 ? theta + 90 : theta - 90);
 	if(!swingtype && currentPoint.t > 0) theta -= 180;
 	currentPoint.t = swingtype ? 90 - theta : 270 - theta;
 	currentPoint.movement = MovementType::SWING;
@@ -382,8 +375,6 @@ void swingSet(ez::e_swing side, double theta, double main, ez::e_angle_behavior 
 		case AutonMode::ODOM:
 			chassis.pid_swing_set(side, theta * okapi::degree, main, 0, behavior);
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
@@ -396,7 +387,8 @@ void swingSet(ez::e_swing side, double theta, double main, ez::e_angle_behavior 
 	}
 	if(!swingtype && currentPoint.t < 0) theta -= 180;
 	theta = fmod(theta, 360);
-	currentPoint = getArcFromTheta(currentPoint, left, right, swingtype ? theta + 90 : theta - 90);
+	double theta_bound = (currentPoint.t < 0 ? currentPoint.t + 360 : currentPoint.t) - (theta < 0 ? theta + 360 : theta);
+	currentPoint = getArcFromTheta(currentPoint, left, right, abs(theta_bound) < 90 ? theta + 90 : theta - 90);
 	if(!swingtype && currentPoint.t > 0) theta -= 180;
 	currentPoint.t = swingtype ? 90 - theta : 270 - theta;
 	currentPoint.movement = MovementType::SWING;
@@ -415,8 +407,6 @@ void swingSet(ez::e_swing side, double theta, double main, double opp) {
 		case AutonMode::ODOM:
 			chassis.pid_swing_set(side, theta * okapi::degree, main, opp, behavior);
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
@@ -429,7 +419,8 @@ void swingSet(ez::e_swing side, double theta, double main, double opp) {
 	}
 	if(!swingtype && currentPoint.t < 0) theta -= 180;
 	theta = fmod(theta, 360);
-	currentPoint = getArcFromTheta(currentPoint, left, right, swingtype ? theta + 90 : theta - 90);
+	double theta_bound = (currentPoint.t < 0 ? currentPoint.t + 360 : currentPoint.t) - (theta < 0 ? theta + 360 : theta);
+	currentPoint = getArcFromTheta(currentPoint, left, right, abs(theta_bound) < 90 ? theta + 90 : theta - 90);
 	if(!swingtype && currentPoint.t > 0) theta -= 180;
 	currentPoint.t = swingtype ? 90 - theta : 270 - theta;
 	currentPoint.movement = MovementType::SWING;
@@ -448,8 +439,6 @@ void swingSet(ez::e_swing side, double theta, double main) {
 		case AutonMode::ODOM:
 			chassis.pid_swing_set(side, theta, main);
 			break;
-		case AutonMode::BRAIN:
-		case AutonMode::DRIVER:
 		default:
 			break;
 	}
@@ -462,7 +451,8 @@ void swingSet(ez::e_swing side, double theta, double main) {
 	}
 	if(!swingtype && currentPoint.t < 0) theta -= 180;
 	theta = fmod(theta, 360);
-	currentPoint = getArcFromTheta(currentPoint, left, right, swingtype ? theta + 90 : theta - 90);
+    double theta_bound = (currentPoint.t < 0 ? currentPoint.t + 360 : currentPoint.t) - (theta < 0 ? theta + 360 : theta);
+	currentPoint = getArcFromTheta(currentPoint, left, right, abs(theta_bound) < 90 ? theta + 90 : theta - 90);
 	if(!swingtype && currentPoint.t > 0) theta -= 180;
 	currentPoint.t = swingtype ? 90 - theta : 270 - theta;
 	currentPoint.movement = MovementType::SWING;

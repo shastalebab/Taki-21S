@@ -63,7 +63,8 @@ void initialize() {
 
   // Autonomous Selector using LLEMU
   ez::as::auton_selector.autons_add({
-      {"6 ring", sixring},
+      {"blue 4 + 1", blue_5pos}, 
+      {"red 6 ring", red_6neg},
       {"test color sort", testauto}
   });
 
@@ -245,11 +246,6 @@ void opcontrol() {
   while (true) {
     // Gives you some extras to make EZ-Template ezier
     // ez_template_extras();
-    if (master.get_digital(DIGITAL_B) && master.get_digital(DIGITAL_DOWN)) {
-      pros::motor_brake_mode_e_t preference = chassis.drive_brake_get();
-      autonomous();
-      chassis.drive_brake_set(preference);
-    }
 
 		chassis.opcontrol_tank();  // Tank control
 		// chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
@@ -263,6 +259,7 @@ void opcontrol() {
 		setIntakeOp();
 		setDunkerOp();
 		setMogoOp();
+    setDoinkerOp();
 
 		pros::delay(ez::util::DELAY_TIME);	// This is used for timer calculations!  Keep this ez::util::DELAY_TIME
 	}

@@ -1,7 +1,9 @@
 #include "autons.hpp"
+#include "EZ-Template/drive/drive.hpp"
 #include "EZ-Template/util.hpp"
 #include "drive.hpp"
 #include "main.h"  // IWYU pragma: keep
+#include "subsystems.hpp"
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -58,7 +60,11 @@ void testauto() {
   pros::delay(1000000);
 }
 
-void sixring() {
+//
+// RED NEGATIVE
+//
+
+void red_6neg() {
 	allianceColor = Colors::RED;
 	setPosition(48, 20, 180);
 	// grab mogo
@@ -72,6 +78,7 @@ void sixring() {
   pidWait(Wait::CHAIN);
 	moveToPoint({14, 59}, fwd, 70);
 	pidWait(Wait::WAIT);
+  delayMillis(500);
 	swingSet(ez::RIGHT_SWING, -75, 127, 70, ez::cw);
 	pidWait(Wait::CHAIN);
 	// grab bottom ring of ring stack, then score corner
@@ -79,22 +86,177 @@ void sixring() {
 	pidWait(Wait::CHAIN);
 	moveToPoint({23, 24}, fwd, 100);
 	pidWait(Wait::CHAIN);
-	turnSet(-135, 127);
+	turnSet(225, 127);
 	pidWait(Wait::CHAIN);
   // score corner
-	driveSet(getDistance({chassis.odom_x_get(), chassis.odom_y_get()}, {6, 6}, fwd), 90);
+	driveSet(24, 90);
   pidWait(Wait::WAIT);
-	driveSet(-20, 80);
-	pidWait(Wait::QUICK);
+	driveSet(-16, 80);
+	pidWait(Wait::CHAIN);
 	// grab mid top ring
 	turnSet(90, 100);
   pidWait(Wait::CHAIN);
   driveSet(66, 100, true);
   pidWaitUntil(30);
-  chassis.pid_speed_max_set(60);
+  chassis.pid_speed_max_set(30);
 	pidWait(Wait::CHAIN);
   // touch ladder
 	swingSet(ez::RIGHT_SWING, 225, 127, 60);
+  pidWait(Wait::WAIT);
+}
+
+//
+// RED POSITIVE
+//
+
+void red_5pos() {
+  allianceColor = Colors::BLUE;
+  setPosition(83.5, 8, 238.88);
+	// score alliance and grab mogo
+  setDunker(2000);
+  delayMillis(500);
+	swingSet(ez::LEFT_SWING, 180, 90, 32, ez::ccw);
+	pidWait(Wait::CHAIN);
+  tareDunker();
+  driveSet(-30, 80);
+  pidWaitUntil(-24);
+  setMogo(true);
+	setIntake(127);
+  pidWait(Wait::CHAIN);
+  setPosition(93.25, 54);
+  // grab middle rings with doinker
+  moveToPoint({79, 62}, fwd, 90);
+  pidWait(Wait::QUICK);
+  setDoinker(true);
+  // bring rings back and score all of them
+  swingSet(ez::RIGHT_SWING, 0, 60, 40, ez::cw);
+  pidWait(Wait::CHAIN);
+  driveSet(14, 100);
+  pidWait(Wait::CHAIN);
+  turnSet(90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(20, 100);
+  // score corner
+  pidWait(Wait::WAIT);
+  turnSet(180, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(15, 100);
+  pidWait(Wait::CHAIN);
+  turnSet(135, 100);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+	driveSet(-16, 127);
+	pidWait(Wait::CHAIN);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+  driveSet(-8, 127);
+  pidWait(Wait::CHAIN);
+  turnSet(-90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(66, 80, true);
+	pidWait(Wait::CHAIN);
+  // touch ladder
+	swingSet(ez::LEFT_SWING, 135, 127, 50);
+  pidWait(Wait::WAIT);
+}
+
+//
+// BLUE NEGATIVE
+//
+
+void blue_6neg() {
+  allianceColor = Colors::BLUE;
+	setPosition(96, 20, 180);
+	// grab mogo
+	moveToPoint({96, 44}, rev, 80);
+	pidWait(Wait::CHAIN);
+  setMogo(true);
+	setIntake(127);
+	// sweep ring rush rings
+	pidWait(Wait::QUICK);
+	moveToPoint({106, 58}, fwd, 70);
+  pidWait(Wait::CHAIN);
+	moveToPoint({130, 59}, fwd, 70);
+	pidWait(Wait::WAIT);
+  delayMillis(500);
+	swingSet(ez::LEFT_SWING, 75, 127, 70, ez::ccw);
+	pidWait(Wait::CHAIN);
+	// grab bottom ring of ring stack, then score corner
+	moveToPoint({121, 42}, fwd, 100);
+	pidWait(Wait::CHAIN);
+	moveToPoint({121, 24}, fwd, 100);
+	pidWait(Wait::CHAIN);
+	turnSet(135, 127);
+	pidWait(Wait::CHAIN);
+  // score corner
+	driveSet(24, 90);
+  pidWait(Wait::WAIT);
+	driveSet(-16, 80);
+	pidWait(Wait::CHAIN);
+	// grab mid top ring
+	turnSet(-90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(66, 100, true);
+  pidWaitUntil(30);
+  chassis.pid_speed_max_set(30);
+	pidWait(Wait::CHAIN);
+  // touch ladder
+	swingSet(ez::LEFT_SWING, 135, 127, 60);
+  pidWait(Wait::WAIT);
+}
+
+//
+// BLUE POSITIVE
+//
+
+void blue_5pos() {
+  allianceColor = Colors::BLUE;
+  setPosition(60.5, 8, 121.12);
+	// score alliance and grab mogo
+  setDunker(2000);
+  delayMillis(500);
+	swingSet(ez::RIGHT_SWING, 180, 90, 32, ez::cw);
+	pidWait(Wait::CHAIN);
+  tareDunker();
+  driveSet(-30, 80);
+  pidWaitUntil(-24);
+  setMogo(true);
+	setIntake(127);
+  pidWait(Wait::CHAIN);
+  setPosition(50.75, 54);
+  // grab middle rings with doinker
+  moveToPoint({65, 62}, fwd, 90);
+  pidWait(Wait::QUICK);
+  setDoinker(true);
+  // bring rings back and score all of them
+  swingSet(ez::LEFT_SWING, 0, 60, 40, ez::ccw);
+  pidWait(Wait::CHAIN);
+  driveSet(14, 100);
+  pidWait(Wait::CHAIN);
+  turnSet(-90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(20, 100);
+  // score corner
+  pidWait(Wait::WAIT);
+  turnSet(180, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(15, 100);
+  pidWait(Wait::CHAIN);
+  turnSet(-135, 100);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+	driveSet(-16, 127);
+	pidWait(Wait::CHAIN);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+  driveSet(-8, 127);
+  pidWait(Wait::CHAIN);
+  turnSet(90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(66, 80, true);
+	pidWait(Wait::CHAIN);
+  // touch ladder
+	swingSet(ez::RIGHT_SWING, 225, 127, 50);
   pidWait(Wait::WAIT);
 }
 

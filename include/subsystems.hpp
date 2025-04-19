@@ -17,18 +17,18 @@ inline pros::Motor intake(7);
 inline pros::Motor dunker(8);
 
 inline ez::Piston mogomech('A');
+inline ez::Piston doinker('C');
 
 void setIntake(int speed);
 void setDunker(int position);
 void setMogo(bool state);
+void setDoinker(bool state);
 void tareDunker();
 
 void setIntakeOp();
 void setDunkerOp();
-
-void tareDunker();
-
 void setMogoOp();
+void setDoinkerOp();
 
 void colorTask();
 void mogoTask();

@@ -13,6 +13,7 @@ bool dunkerState = 0;
 
 // Internal states to avoid tasks clashing
 bool jamState = false;
+bool ringDetected = false;
 bool discarding = false;
 bool taring = false;
 
@@ -28,6 +29,8 @@ void setIntake(int speed) {
 void setDunker(int position) { dunkerPID.target_set(position); }
 
 void setMogo(bool state) { mogomech.set(state); }
+
+void setDoinker(bool state) { doinker.set(state); }
 
 void tareDunker() { taring = true; }
 
@@ -50,11 +53,11 @@ void setDunkerOp() {
 		dunkerPreset = true;
 		if(dunker.get_position() > 300) dunkerState = true;
 		if(dunkerState)
-			setDunker(100);
+			setDunker(180);
 		else
-			setDunker(10); 
+			setDunker(10);
 	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
-			tareDunker();
+		tareDunker();
 	} else {
 		if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
 			dunker.move(127);
@@ -78,6 +81,8 @@ void setDunkerOp() {
 
 void setMogoOp() { mogomech.button_toggle(master.get_digital(pros::E_CONTROLLER_DIGITAL_Y)); }
 
+void setDoinkerOp() { setDoinker(master.get_digital(pros::E_CONTROLLER_DIGITAL_UP)); }
+
 //
 // Color sort
 //
@@ -87,6 +92,7 @@ void discard() {
 	pros::delay(80);
 	setIntake(intakeTarget);
 	discarding = false;
+	ringDetected = false;
 }
 
 lv_obj_t* colorind = lv_obj_create(lv_scr_act());
@@ -126,9 +132,9 @@ void colorTask() {
 		if(!jamState && pros::competition::is_autonomous() && !pros::competition::is_disabled()) {
 			if(colorCompare(color) && !discarding) {
 				discarding = true;
-				discard();
 			} else if(discarding) {
-				if(hookSens.get_value() < 2800 && util::sgn(intake.get_actual_velocity()) == 1) discard();
+				if(hookSens.get_value() < 2800 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
+				if(ringDetected && hookSens.get_value() > 2800) discard();
 			}
 		}
 		pros::delay(10);
@@ -164,10 +170,10 @@ void dunkerTask() {
 				setDunker(10);
 				taretime = 0;
 				taring = false;
-			} else if(usingDunkerTarget)
-				dunker.move(dunkerPID.compute(dunker.get_position()));
-			pros::delay(10);
-		}
+			}
+		} else if(usingDunkerTarget)
+			dunker.move(dunkerPID.compute(dunker.get_position()));
+		pros::delay(10);
 	}
 }
 

@@ -57,6 +57,7 @@ void setPosition(double x, double y, double t);
 void pidWait(Wait type);
 void pidWaitUntil(double distance);
 void pidWaitUntil(Coordinate coordinate);
+void delayMillis(int millis);
 
 // Move to point wrappers
 void moveToPoint(Coordinate newpoint, ez::drive_directions direction, int speed);
