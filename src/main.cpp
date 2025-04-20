@@ -3,6 +3,7 @@
 
 #include "autons.hpp"
 #include "drive.hpp"
+#include "subsystems.hpp"
 
 
 /////
@@ -63,8 +64,10 @@ void initialize() {
 
   // Autonomous Selector using LLEMU
   ez::as::auton_selector.autons_add({
-      {"blue 4 + 1", blue_5pos}, 
-      {"red 6 ring", red_6neg},
+      {"blue 4 + 1 pos", blue_4pos},
+      {"blue 6 + 1 ring neg", blue_7neg},
+      {"red 4 + 1 pos", red_4pos}, 
+      {"red 6 + 1 ring neg", red_7neg}, 
       {"test color sort", testauto}
   });
 
@@ -242,6 +245,8 @@ void ez_template_extras() {
 void opcontrol() {
   // This is preference to what you like to drive on
   chassis.drive_brake_set(pros::E_MOTOR_BRAKE_BRAKE);
+  setMogo(false);
+  tareDunker();
 
   while (true) {
     // Gives you some extras to make EZ-Template ezier

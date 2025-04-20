@@ -12,14 +12,14 @@ vector<Coordinate> autonPath = {};
 // Internal math
 //
 
-double getDistance(Coordinate point1, Coordinate point2, ez::drive_directions direction) {
+double getDistance(Coordinate point1, Coordinate point2, drive_directions direction) {
 	auto new_direction = direction == rev ? -1 : 1;
 	double errorX = point2.x - point1.x;
 	double errorY = point2.y - point1.y;
 	return ((sqrt((errorX * errorX) + (errorY * errorY))) * new_direction);
 }
 
-double getTheta(Coordinate point1, Coordinate point2, ez::drive_directions direction) {
+double getTheta(Coordinate point1, Coordinate point2, drive_directions direction) {
 	auto new_direction = direction == rev ? 180 : 0;
 	double errorX = point2.x - point1.x;
 	double errorY = point2.y - point1.y;
@@ -29,53 +29,43 @@ double getTheta(Coordinate point1, Coordinate point2, ez::drive_directions direc
 Coordinate getArc(Coordinate startpoint, double right, double left, double distance) {
 	// Get the coordinate within the reference frame of the robot of the end point
 	double radius = (right + left) / (right - left) * (width / 2);
-	double theta = (right - left) / width * distance;
+	double theta = ((right - left) / width * distance) + (startpoint.t * M_PI / 180);
+	
+	double relative_x = -((-radius * cos(theta) + radius) - (-radius * cos(startpoint.t * M_PI / 180) + radius));
+	double relative_y = -((radius * sin(theta)) - (radius * sin(startpoint.t * M_PI / 180)));
 
-	double relative_x = radius * sin(theta);
-	double relative_y = -radius * cos(theta) + radius;
-	Coordinate point_relative = {relative_x, relative_y, theta * 180 / M_PI, (right + left) / 2, fwd};
+	theta *= 180 / M_PI;
+	if(theta < 0) theta += 360;
+	theta = fmod(theta, 360);
 
-	// Rotate the point around the origin by the start point's value of theta
-	Coordinate point_global = point_relative;
-	point_global.x = (point_relative.x * cos((startpoint.t + 90) * M_PI / 180)) - (point_relative.y * sin((startpoint.t + 90) * M_PI / 180));
-	point_global.y = (point_relative.y * cos((startpoint.t + 90) * M_PI / 180)) + (point_relative.x * sin((startpoint.t + 90) * M_PI / 180));
-	if(radius < 0) point_global.t *= -1;
-	point_global.t += startpoint.t;
-	if(point_global.t < 0) point_global.t += 360;
-	point_global.t = fmod(point_global.t, 360);
-
-	// Translate the point's x and y values by the start point's x and y values
-	point_global.x += startpoint.x;
-	point_global.y += startpoint.y;
-
-	return point_global;
-}
-
-Coordinate getArcFromTheta(Coordinate startpoint, double right, double left, double theta) {
-	// Get the coordinate within the reference frame of the robot of the end point
-	double radius = (right + left) / (right - left) * (width / 2);
-	theta *= right < left ? -1 : 1;
-	double relative_x = radius * sin(theta * M_PI / 180);
-	double relative_y = -radius * cos(theta * M_PI / 180) + radius;
 	Coordinate point_relative = {relative_x, relative_y, theta, (right + left) / 2, fwd};
 
-	// Rotate the point around the origin by the start point's value of theta
-	Coordinate point_global = point_relative;
-	point_global.x = (point_relative.x * cos((startpoint.t + 90) * M_PI / 180)) - (point_relative.y * sin((startpoint.t + 90) * M_PI / 180));
-	point_global.y = (point_relative.y * cos((startpoint.t + 90) * M_PI / 180)) + (point_relative.x * sin((startpoint.t + 90) * M_PI / 180));
-	if(radius < 0) point_global.t *= -1;
-	point_global.t += startpoint.t;
-	if(point_global.t < 0) point_global.t += 360;
-	point_global.t = fmod(point_global.t, 360);
-
 	// Translate the point's x and y values by the start point's x and y values
-	point_global.x += startpoint.x;
-	point_global.y += startpoint.y;
+	point_relative.x += startpoint.x;
+	point_relative.y += startpoint.y;
 
-	return point_global;
+	return point_relative;
 }
 
-std::vector<Coordinate> injectArc(Coordinate startpoint, ez::e_swing side, ez::e_angle_behavior behavior, double main, double opp, double theta,
+Coordinate getArcFromTheta(Coordinate startpoint, e_swing side, e_angle_behavior behavior, double right, double left, double theta) {
+	// Get the coordinate within the reference frame of the robot of the end point
+	double radius = (right + left) / (right - left) * (width / 2);
+	theta = fmod(theta, 360);
+	if(theta < 0) theta += 360;
+	
+	double relative_x = -((-radius * cos(theta * M_PI / 180) + radius) - (-radius * cos(startpoint.t * M_PI / 180) + radius));
+	double relative_y = -((radius * sin(theta * M_PI / 180)) - (radius * sin(startpoint.t * M_PI / 180)));
+
+	Coordinate point_relative = {relative_x, relative_y, theta, (right + left) / 2, fwd};
+
+	// Translate the point's x and y values by the start point's x and y values
+	point_relative.x += startpoint.x;
+	point_relative.y += startpoint.y;
+
+	return point_relative;
+}
+
+std::vector<Coordinate> injectArc(Coordinate startpoint, e_swing side, e_angle_behavior behavior, double main, double opp, double theta,
 								  double lookAhead) {
 	double left = side == LEFT_SWING ? main : opp;
 	double right = side == RIGHT_SWING ? main : opp;
@@ -84,20 +74,15 @@ std::vector<Coordinate> injectArc(Coordinate startpoint, ez::e_swing side, ez::e
 
 	std::vector<Coordinate> pointsBar;
 	double arciter = 0;
-	double arcdist = ((side == LEFT_SWING && behavior == ez::ccw) || (side == RIGHT_SWING && behavior == ez::cw)) ? .01 * lookAhead : -.01 * lookAhead;
-	Coordinate newDist = getArc(startpoint, left, right, arciter);
+	double arcdist = ((side == LEFT_SWING && behavior == ccw) || (side == RIGHT_SWING && behavior == cw)) ? .01 * lookAhead : -(.01 * lookAhead);
+	Coordinate newDist = getArc(startpoint, right, left, arciter);
 
-	if(side == LEFT_SWING) {
-		theta *= -1;
-		theta -= 90;
-	}
-	theta = arcdist > 0 ? theta + 90 : theta - 90;
 	theta = fmod(theta, 360);
 	if(theta < 0) theta += 360;
 
 	while(!(newDist.t > theta - (3.837 * lookAhead) && newDist.t < theta + (3.837 * lookAhead))) {
 		arciter += arcdist;
-		newDist = getArc(startpoint, left, right, arciter);
+		newDist = getArc(startpoint, right, left, arciter);
 		pointsBar.push_back(newDist);
 	}
 	return pointsBar;
@@ -112,15 +97,15 @@ std::vector<Coordinate> injectPath(std::vector<Coordinate> coordList, double loo
 															  coordList[i + 1].opp, coordList[i + 1].theta, lookAhead);
 				injectedList.insert(injectedList.end(), swingList.begin(), swingList.end());
 			} else if(coordList[i + 1].movement == MovementType::DRIVE) {
-				ez::drive_directions dir = coordList[i].x > coordList[i + 1].x ? rev : fwd;
+				drive_directions dir = coordList[i].x > coordList[i + 1].x ? rev : fwd;
 				double angle = getTheta(coordList[i], coordList[i + 1], dir);
 				double errorX = lookAhead * (sin(angle * M_PI / 180));
 				double errorY = lookAhead * (cos(angle * M_PI / 180));
 				Coordinate newDist = coordList[i];
 				injectedList.push_back(coordList[i]);
 				while(getDistance(coordList[i], newDist, fwd) < getDistance(coordList[i], coordList[i + 1], fwd)) {
-					newDist.x += errorX * (dir ? -1 : 1);
-					newDist.y += errorY * (dir ? -1 : 1);
+					newDist.x += errorX * (dir ? 1 : -1);
+					newDist.y += errorY * (dir ? 1 : -1);
 					injectedList.push_back(newDist);
 				}
 				injectedList.pop_back();
@@ -140,7 +125,7 @@ void setPosition(double x, double y) {
 	currentPoint.x = x;
 	currentPoint.y = y;
 	chassis.odom_xy_set(currentPoint.x, currentPoint.y);
-	currentPoint.movement = MovementType::DRIVE;
+	currentPoint.movement = MovementType::TURN;
 	autonPath.push_back(currentPoint);
 }
 
@@ -149,7 +134,7 @@ void setPosition(double x, double y, double t) {
 	currentPoint.y = y;
 	currentPoint.t = t;
 	chassis.odom_xyt_set(currentPoint.x, currentPoint.y, t);
-	currentPoint.movement = MovementType::DRIVE;
+	currentPoint.movement = MovementType::TURN;
 	autonPath.push_back(currentPoint);
 }
 
@@ -168,7 +153,6 @@ void pidWait(Wait type) {
 				case Wait::CHAIN:
 					chassis.pid_wait_quick_chain();
 					break;
-				case Wait::WAIT:
 				default:
 					chassis.pid_wait();
 					break;
@@ -216,7 +200,7 @@ void delayMillis(int millis) {
 // Move to point wrappers
 //
 
-void moveToPoint(Coordinate newpoint, ez::drive_directions direction, int speed) {
+void moveToPoint(Coordinate newpoint, drive_directions direction, int speed) {
 	bool slew_state = false;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
@@ -240,7 +224,7 @@ void moveToPoint(Coordinate newpoint, ez::drive_directions direction, int speed)
 	autonPath.push_back(currentPoint);
 }
 
-void moveToPoint(Coordinate currentpoint, Coordinate newpoint, ez::drive_directions direction, int speed) {
+void moveToPoint(Coordinate currentpoint, Coordinate newpoint, drive_directions direction, int speed) {
 	bool slew_state = false;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
@@ -271,7 +255,7 @@ void moveToPoint(Coordinate currentpoint, Coordinate newpoint, ez::drive_directi
 void driveSet(double distance, int speed, bool slew) {
 	double errorX = distance * (sin(chassis.odom_theta_get() * M_PI / 180));
 	double errorY = distance * (cos(chassis.odom_theta_get() * M_PI / 180));
-	ez::drive_directions direction = distance < 0 ? rev : fwd;
+	drive_directions direction = distance < 0 ? rev : fwd;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
 			chassis.pid_drive_set(distance * okapi::inch, speed, false);
@@ -295,7 +279,7 @@ void driveSet(double distance, int speed, bool slew) {
 void driveSet(double distance, int speed) {
 	double errorX = distance * (sin(chassis.odom_theta_get() * M_PI / 180));
 	double errorY = distance * (cos(chassis.odom_theta_get() * M_PI / 180));
-	ez::drive_directions direction = distance < 0 ? rev : fwd;
+	drive_directions direction = distance < 0 ? rev : fwd;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
 			chassis.pid_drive_set(distance * okapi::inch, speed, false);
@@ -338,7 +322,7 @@ void turnSet(double theta, int speed) {
 // Swing set wrappers
 //
 
-void swingSet(ez::e_swing side, double theta, double main, double opp, ez::e_angle_behavior behavior) {
+void swingSet(e_swing side, double theta, double main, double opp, e_angle_behavior behavior) {
 	switch(autonMode) {
 		case AutonMode::PLAIN:
 		case AutonMode::ODOM:
@@ -349,27 +333,18 @@ void swingSet(ez::e_swing side, double theta, double main, double opp, ez::e_ang
 	}
 	double right = side == RIGHT_SWING ? main : opp;
 	double left = side == LEFT_SWING ? main : opp;
-	bool swingtype = ((side == LEFT_SWING && behavior == ez::ccw) || (side == RIGHT_SWING && behavior == ez::cw)) ? true : false;
-	if(side == LEFT_SWING) {
-		theta *= -1;
-		theta -= 180;
-	}
-	if(!swingtype && currentPoint.t < 0) theta -= 180;
-	theta = fmod(theta, 360);
-	double theta_bound = (currentPoint.t < 0 ? currentPoint.t + 360 : currentPoint.t) - (theta < 0 ? theta + 360 : theta);
-	currentPoint = getArcFromTheta(currentPoint, left, right, abs(theta_bound) < 90 ? theta + 90 : theta - 90);
-	if(!swingtype && currentPoint.t > 0) theta -= 180;
-	currentPoint.t = swingtype ? 90 - theta : 270 - theta;
+	currentPoint = getArcFromTheta(currentPoint, side, behavior, right, left, theta);
+	currentPoint.t = theta;
 	currentPoint.movement = MovementType::SWING;
 	currentPoint.side = side;
-	currentPoint.theta = swingtype ? theta - 90 : theta + 270;
+	currentPoint.theta = theta;
 	currentPoint.main = main;
 	currentPoint.opp = opp;
 	currentPoint.behavior = behavior;
 	autonPath.push_back(currentPoint);
 }
 
-void swingSet(ez::e_swing side, double theta, double main, ez::e_angle_behavior behavior) {
+void swingSet(e_swing side, double theta, double main, e_angle_behavior behavior) {
 	switch(autonMode) {
 		case AutonMode::PLAIN:
 		case AutonMode::ODOM:
@@ -380,27 +355,18 @@ void swingSet(ez::e_swing side, double theta, double main, ez::e_angle_behavior 
 	}
 	double right = side == RIGHT_SWING ? main : 0;
 	double left = side == LEFT_SWING ? main : 0;
-	bool swingtype = ((side == LEFT_SWING && behavior == ez::ccw) || (side == RIGHT_SWING && behavior == ez::cw)) ? true : false;
-	if(side == LEFT_SWING) {
-		theta *= -1;
-		theta -= 180;
-	}
-	if(!swingtype && currentPoint.t < 0) theta -= 180;
-	theta = fmod(theta, 360);
-	double theta_bound = (currentPoint.t < 0 ? currentPoint.t + 360 : currentPoint.t) - (theta < 0 ? theta + 360 : theta);
-	currentPoint = getArcFromTheta(currentPoint, left, right, abs(theta_bound) < 90 ? theta + 90 : theta - 90);
-	if(!swingtype && currentPoint.t > 0) theta -= 180;
-	currentPoint.t = swingtype ? 90 - theta : 270 - theta;
+	currentPoint = getArcFromTheta(currentPoint, side, behavior, right, left, theta);
+	currentPoint.t = theta;
 	currentPoint.movement = MovementType::SWING;
 	currentPoint.side = side;
-	currentPoint.theta = swingtype ? theta - 90 : theta + 270;
+	currentPoint.theta = theta;
 	currentPoint.main = main;
 	currentPoint.opp = 0;
 	currentPoint.behavior = behavior;
 	autonPath.push_back(currentPoint);
 }
 
-void swingSet(ez::e_swing side, double theta, double main, double opp) {
+void swingSet(e_swing side, double theta, double main, double opp) {
 	e_angle_behavior behavior = ((theta > 180) && (side == RIGHT_SWING)) || ((theta < 180) && (side == LEFT_SWING)) ? cw : ccw;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
@@ -412,27 +378,18 @@ void swingSet(ez::e_swing side, double theta, double main, double opp) {
 	}
 	double right = side == RIGHT_SWING ? main : opp;
 	double left = side == LEFT_SWING ? main : opp;
-	bool swingtype = ((side == LEFT_SWING && behavior == ez::ccw) || (side == RIGHT_SWING && behavior == ez::cw)) ? true : false;
-	if(side == LEFT_SWING) {
-		theta *= -1;
-		theta -= 180;
-	}
-	if(!swingtype && currentPoint.t < 0) theta -= 180;
-	theta = fmod(theta, 360);
-	double theta_bound = (currentPoint.t < 0 ? currentPoint.t + 360 : currentPoint.t) - (theta < 0 ? theta + 360 : theta);
-	currentPoint = getArcFromTheta(currentPoint, left, right, abs(theta_bound) < 90 ? theta + 90 : theta - 90);
-	if(!swingtype && currentPoint.t > 0) theta -= 180;
-	currentPoint.t = swingtype ? 90 - theta : 270 - theta;
+	currentPoint = getArcFromTheta(currentPoint, side, behavior, right, left, theta);
+	currentPoint.t = theta;
 	currentPoint.movement = MovementType::SWING;
 	currentPoint.side = side;
-	currentPoint.theta = swingtype ? theta - 90 : theta + 270;
+	currentPoint.theta = theta;
 	currentPoint.main = main;
 	currentPoint.opp = opp;
 	currentPoint.behavior = behavior;
 	autonPath.push_back(currentPoint);
 }
 
-void swingSet(ez::e_swing side, double theta, double main) {
+void swingSet(e_swing side, double theta, double main) {
 	e_angle_behavior behavior = ((theta > 180) && (side == RIGHT_SWING)) || ((theta < 180) && (side == LEFT_SWING)) ? cw : ccw;
 	switch(autonMode) {
 		case AutonMode::PLAIN:
@@ -444,20 +401,11 @@ void swingSet(ez::e_swing side, double theta, double main) {
 	}
 	double right = side == RIGHT_SWING ? main : 0;
 	double left = side == LEFT_SWING ? main : 0;
-	bool swingtype = ((side == LEFT_SWING && behavior == ez::ccw) || (side == RIGHT_SWING && behavior == ez::cw)) ? true : false;
-	if(side == LEFT_SWING) {
-		theta *= -1;
-		theta -= 180;
-	}
-	if(!swingtype && currentPoint.t < 0) theta -= 180;
-	theta = fmod(theta, 360);
-    double theta_bound = (currentPoint.t < 0 ? currentPoint.t + 360 : currentPoint.t) - (theta < 0 ? theta + 360 : theta);
-	currentPoint = getArcFromTheta(currentPoint, left, right, abs(theta_bound) < 90 ? theta + 90 : theta - 90);
-	if(!swingtype && currentPoint.t > 0) theta -= 180;
-	currentPoint.t = swingtype ? 90 - theta : 270 - theta;
+	currentPoint = getArcFromTheta(currentPoint, side, behavior, right, left, theta);
+	currentPoint.t = theta;
 	currentPoint.movement = MovementType::SWING;
 	currentPoint.side = side;
-	currentPoint.theta = swingtype ? theta - 90 : theta + 270;
+	currentPoint.theta = theta;
 	currentPoint.main = main;
 	currentPoint.opp = 0;
 	currentPoint.behavior = behavior;

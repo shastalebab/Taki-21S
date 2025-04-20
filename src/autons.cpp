@@ -96,9 +96,57 @@ void red_6neg() {
 	// grab mid top ring
 	turnSet(90, 100);
   pidWait(Wait::CHAIN);
-  driveSet(66, 100, true);
-  pidWaitUntil(30);
-  chassis.pid_speed_max_set(30);
+  driveSet(66, 70, true);
+	pidWait(Wait::CHAIN);
+  // touch ladder
+	swingSet(ez::RIGHT_SWING, 225, 127, 60);
+  pidWait(Wait::WAIT);
+}
+
+void red_7neg() {
+	allianceColor = Colors::RED;
+
+  setPosition(60.5, 8, 121.12);
+	// score alliance and grab mogo
+  setDunker(2000);
+  delayMillis(500);
+	swingSet(ez::RIGHT_SWING, 180, 90, 32, ez::cw);
+	pidWait(Wait::CHAIN);
+  tareDunker();
+  driveSet(-30, 80);
+  pidWaitUntil(-24);
+  setMogo(true);
+	setIntake(127);
+  pidWait(Wait::QUICK);
+  // sweep ring rush rings
+  setPosition(50.75, 54);
+	moveToPoint({35, 65}, fwd, 70);
+  pidWait(Wait::CHAIN);
+	moveToPoint({12, 66}, fwd, 70);
+	pidWait(Wait::WAIT);
+  delayMillis(500);
+	swingSet(ez::RIGHT_SWING, -75, 127, 70, ez::cw);
+	pidWait(Wait::CHAIN);
+	// grab bottom ring of ring stack, then score corner
+	moveToPoint({23, 42}, fwd, 100);
+	pidWait(Wait::CHAIN);
+	moveToPoint({23, 24}, fwd, 100);
+	pidWait(Wait::CHAIN);
+	turnSet(225, 127);
+	pidWait(Wait::CHAIN);
+  // score corner
+	driveSet(24, 127);
+  pidWait(Wait::WAIT);
+	driveSet(-16, 127);
+	pidWait(Wait::CHAIN);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+  driveSet(-8, 127);
+  pidWait(Wait::CHAIN);
+	// grab mid top ring
+	turnSet(90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(66, 70, true);
 	pidWait(Wait::CHAIN);
   // touch ladder
 	swingSet(ez::RIGHT_SWING, 225, 127, 60);
@@ -109,8 +157,52 @@ void red_6neg() {
 // RED POSITIVE
 //
 
-void red_5pos() {
-  allianceColor = Colors::BLUE;
+void red_4pos() {
+  allianceColor = Colors::RED;
+  setPosition(83.5, 8, 238.88);
+	// score alliance and grab mogo
+  setDunker(2000);
+  delayMillis(500);
+	swingSet(ez::LEFT_SWING, 180, 90, 32, ez::ccw);
+	pidWait(Wait::CHAIN);
+  tareDunker();
+  driveSet(-30, 80);
+  pidWaitUntil(-24);
+  setMogo(true);
+	setIntake(127);
+  pidWait(Wait::CHAIN);
+  // score bottom ring
+  setPosition(93.25, 54);
+  turnSet(100, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(22, 100);
+  // score corner
+  pidWait(Wait::WAIT);
+  turnSet(180, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(24, 100);
+  pidWait(Wait::CHAIN);
+  turnSet(135, 100);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+	driveSet(-16, 127);
+	pidWait(Wait::CHAIN);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+  driveSet(-12, 127);
+  pidWait(Wait::CHAIN);
+  // score mid top ring
+  turnSet(-90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(66, 70, true);
+	pidWait(Wait::CHAIN);
+  // touch ladder
+	swingSet(ez::LEFT_SWING, 135, 127, 50, ez::ccw);
+  pidWait(Wait::WAIT);
+}
+
+void red_6pos() {
+  allianceColor = Colors::RED;
   setPosition(83.5, 8, 238.88);
 	// score alliance and grab mogo
   setDunker(2000);
@@ -151,9 +243,10 @@ void red_5pos() {
   pidWait(Wait::WAIT);
   driveSet(-8, 127);
   pidWait(Wait::CHAIN);
+  // score mid top ring
   turnSet(-90, 100);
   pidWait(Wait::CHAIN);
-  driveSet(66, 80, true);
+  driveSet(66, 70, true);
 	pidWait(Wait::CHAIN);
   // touch ladder
 	swingSet(ez::LEFT_SWING, 135, 127, 50);
@@ -196,12 +289,59 @@ void blue_6neg() {
 	// grab mid top ring
 	turnSet(-90, 100);
   pidWait(Wait::CHAIN);
-  driveSet(66, 100, true);
-  pidWaitUntil(30);
-  chassis.pid_speed_max_set(30);
+  driveSet(66, 70, true);
 	pidWait(Wait::CHAIN);
   // touch ladder
 	swingSet(ez::LEFT_SWING, 135, 127, 60);
+  pidWait(Wait::WAIT);
+}
+
+void blue_7neg() {
+  allianceColor = Colors::BLUE;
+  setPosition(83.5, 8, 238.88);
+	// score alliance and grab mogo
+  setDunker(2000);
+  delayMillis(500);
+	swingSet(ez::LEFT_SWING, 180, 90, 32, ez::ccw);
+	pidWait(Wait::CHAIN);
+  tareDunker();
+  driveSet(-30, 80);
+  pidWaitUntil(-24);
+  setMogo(true);
+	setIntake(127);
+  pidWait(Wait::QUICK);
+  setPosition(93.25, 54);
+	// sweep ring rush rings
+	moveToPoint({106, 65}, fwd, 70);
+  pidWait(Wait::CHAIN);
+	moveToPoint({130, 66}, fwd, 70);
+	pidWait(Wait::WAIT);
+  delayMillis(500);
+	swingSet(ez::LEFT_SWING, 75, 127, 70, ez::ccw);
+	pidWait(Wait::CHAIN);
+	// grab bottom ring of ring stack, then score corner
+	moveToPoint({121, 42}, fwd, 100);
+	pidWait(Wait::CHAIN);
+	moveToPoint({121, 24}, fwd, 100);
+	pidWait(Wait::CHAIN);
+	turnSet(135, 127);
+	pidWait(Wait::CHAIN);
+  // score corner
+	driveSet(24, 127);
+  pidWait(Wait::WAIT);
+	driveSet(-16, 127);
+	pidWait(Wait::CHAIN);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+  driveSet(-8, 127);
+  pidWait(Wait::CHAIN);
+	// grab mid top ring
+	turnSet(-90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(66, 70, true);
+	pidWait(Wait::CHAIN);
+  // touch ladder
+	swingSet(ez::LEFT_SWING, 135, 127, 60, ez::ccw);
   pidWait(Wait::WAIT);
 }
 
@@ -209,7 +349,51 @@ void blue_6neg() {
 // BLUE POSITIVE
 //
 
-void blue_5pos() {
+void blue_4pos() {
+  allianceColor = Colors::BLUE;
+  setPosition(60.5, 8, 121.12);
+	// score alliance and grab mogo
+  setDunker(2000);
+  delayMillis(500);
+	swingSet(ez::RIGHT_SWING, 180, 90, 32, ez::cw);
+	pidWait(Wait::CHAIN);
+  tareDunker();
+  driveSet(-30, 80);
+  pidWaitUntil(-24);
+  setMogo(true);
+	setIntake(127);
+  pidWait(Wait::CHAIN);
+  // score bottom ring
+  setPosition(50.75, 54);
+  turnSet(-100, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(22, 100);
+  // score corner
+  pidWait(Wait::WAIT);
+  turnSet(180, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(24, 100);
+  pidWait(Wait::QUICK);
+  turnSet(-135, 100);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+	driveSet(-16, 127);
+	pidWait(Wait::CHAIN);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+  driveSet(-12, 127);
+  pidWait(Wait::CHAIN);
+  // score mid top ring
+  turnSet(90, 100);
+  pidWait(Wait::CHAIN);
+  driveSet(66, 70, true);
+	pidWait(Wait::CHAIN);
+  // touch ladder
+	swingSet(ez::RIGHT_SWING, 225, 127, 50);
+  pidWait(Wait::WAIT);
+}
+
+void blue_6pos() {
   allianceColor = Colors::BLUE;
   setPosition(60.5, 8, 121.12);
 	// score alliance and grab mogo
@@ -251,6 +435,7 @@ void blue_5pos() {
   pidWait(Wait::WAIT);
   driveSet(-8, 127);
   pidWait(Wait::CHAIN);
+  // score mid top ring
   turnSet(90, 100);
   pidWait(Wait::CHAIN);
   driveSet(66, 80, true);
