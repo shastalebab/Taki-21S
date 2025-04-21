@@ -79,6 +79,8 @@ void initialize() {
 	pros::Task DunkerTask(dunkerTask);
 	pros::Task UnjamTask(unjamTask);
 	master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
+
+	dunker.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 }
 
 /**

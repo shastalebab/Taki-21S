@@ -51,6 +51,7 @@ void setDunkerOp() {
 	if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
 		dunkerState = !dunkerState;
 		dunkerPreset = true;
+		usingDunkerTarget = true;
 		if(dunker.get_position() > 300) dunkerState = true;
 		if(dunkerState)
 			setDunker(180);
@@ -69,8 +70,8 @@ void setDunkerOp() {
 			setDunker(dunker.get_position());
 			usingDunkerTarget = false;
 			dunkerPreset = false;
-		} else if(!dunkerPreset) {
-			usingDunkerTarget = true;
+		} else if(!dunkerPreset and taring==false) {
+			dunker.move(0);
 		}
 	}
 	if(dunkerPID.target_get() > 3000)
