@@ -26,7 +26,7 @@ void setIntake(int speed) {
 	intakeTarget = speed;
 }
 
-const int dunker_down_speed = 80;
+const int dunker_down_speed = 100;
 const int dunker_up_speed = 127;
 
 int dunker_current_max_speed = dunker_up_speed;
