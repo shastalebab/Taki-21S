@@ -3,7 +3,7 @@
 #include "EZ-Template/util.hpp"
 #include "main.h"  // IWYU pragma: keep
 
-AutonMode autonMode = AutonMode::BRAIN;
+AutonMode autonMode = AutonMode::DRIVER;
 const double width = 11.5;
 Coordinate currentPoint = {0, 0, 0};
 vector<Coordinate> autonPath = {};

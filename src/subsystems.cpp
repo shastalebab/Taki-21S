@@ -1,7 +1,10 @@
 #include "subsystems.hpp"
+
+#include "drive.hpp"
 #include "liblvgl/misc/lv_color.h"
 #include "main.h"  // IWYU pragma: keep
 #include "pros/misc.h"
+
 
 // Values to determine dunker behavior
 bool dunkerPreset = false;
@@ -24,8 +27,10 @@ bool taring = false;
 //
 
 void setIntake(int speed) {
-	intake.move(speed);
-	intakeTarget = speed;
+	if(autonMode != AutonMode::BRAIN) {
+		intake.move(speed);
+		intakeTarget = speed;
+	}
 }
 
 const int dunker_down_speed = 100;
@@ -33,19 +38,27 @@ const int dunker_up_speed = 127;
 
 int dunker_current_max_speed = dunker_up_speed;
 void setDunker(int position) {
-	if(position > dunkerPID.target_get()) {
-		dunker_current_max_speed = dunker_up_speed;
-	} else {
-		dunker_current_max_speed = dunker_down_speed;
+	if(autonMode != AutonMode::BRAIN) {
+		if(position > dunkerPID.target_get()) {
+			dunker_current_max_speed = dunker_up_speed;
+		} else {
+			dunker_current_max_speed = dunker_down_speed;
+		}
+		dunkerPID.target_set(position);
 	}
-	dunkerPID.target_set(position);
 }
 
-void setMogo(bool state) { mogomech.set(state); }
+void setMogo(bool state) {
+	if(autonMode != AutonMode::BRAIN) mogomech.set(state);
+}
 
-void setDoinker(bool state) { doinker.set(state); }
+void setDoinker(bool state) {
+	if(autonMode != AutonMode::BRAIN) doinker.set(state);
+}
 
-void tareDunker() { taring = true; }
+void tareDunker() {
+	if(autonMode != AutonMode::BRAIN) taring = true;
+}
 
 //
 // Operator Control
@@ -112,8 +125,10 @@ void discard() {
 void colorSet(Colors color) {
 	// Set on screen elements to the corresponding color
 	lv_color32_t color_use = theme_accent;
-	if(color == Colors::RED) color_use = red;
-	else if(color == Colors::BLUE) color_use = blue;
+	if(color == Colors::RED)
+		color_use = red;
+	else if(color == Colors::BLUE)
+		color_use = blue;
 	lv_obj_set_style_outline_color(colorind, color_use, LV_PART_MAIN);
 }
 

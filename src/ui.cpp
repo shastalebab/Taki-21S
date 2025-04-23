@@ -138,10 +138,10 @@ void pathViewerTask() {
 	while(true) {
 		if(pathIter < pathDisplay.size() && pathDisplay.size() > 1) {
 			lv_obj_clear_flag(autonRobot, LV_OBJ_FLAG_HIDDEN);
-			lv_obj_set_pos(autonRobot, (2 * pathDisplay[pathIter].x) - 16, 128 - (2 * pathDisplay[pathIter].y));
+			lv_obj_set_pos(autonRobot, (2 * pathDisplay[pathIter].x) - 11, 130 - (2 * pathDisplay[pathIter].y));
 			if(pathIter < pathDisplay.size() - 1) {
 				lv_img_set_angle(autonRobot, 10 * (pathDisplay[pathIter].t));
-				pros::delay(120 - 10 * sqrt(pathDisplay[pathIter].main));
+				pros::delay(33 - 2.5 * sqrt(pathDisplay[pathIter].main));
 			}
 			if(pathIter == 1) pros::delay(500);
 			pathIter++;

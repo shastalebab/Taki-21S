@@ -107,7 +107,7 @@ void disabled() {
  * starts.
  */
 void competition_initialize() {
-	// . . .
+	autonMode = AutonMode::BRAIN;
 }
 
 /**
@@ -255,6 +255,7 @@ void opcontrol() {
 	chassis.drive_brake_set(pros::E_MOTOR_BRAKE_BRAKE);
 	setMogo(false);
 	tareDunker();
+	autonMode = AutonMode::DRIVER;
 
 	while(true) {
 		// Gives you some extras to make EZ-Template ezier
