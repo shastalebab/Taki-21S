@@ -82,7 +82,7 @@ void setDunkerOp() {
 		if(dunkerState)
 			setDunker(180);
 		else
-			setDunker(10);
+			tareDunker();
 	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
 		tareDunker();
 	} else {
