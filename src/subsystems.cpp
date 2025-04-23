@@ -28,7 +28,18 @@ void setIntake(int speed) {
 	intakeTarget = speed;
 }
 
-void setDunker(int position) { dunkerPID.target_set(position); }
+const int dunker_down_speed = 100;
+const int dunker_up_speed = 127;
+
+int dunker_current_max_speed = dunker_up_speed;
+void setDunker(int position) {
+	if(position > dunkerPID.target_get()) {
+		dunker_current_max_speed = dunker_up_speed;
+	} else {
+		dunker_current_max_speed = dunker_down_speed;
+	}
+	dunkerPID.target_set(position);
+}
 
 void setMogo(bool state) { mogomech.set(state); }
 
@@ -72,7 +83,7 @@ void setDunkerOp() {
 			setDunker(dunker.get_position());
 			usingDunkerTarget = false;
 			dunkerPreset = false;
-		} else if(!dunkerPreset and taring==false) {
+		} else if(!dunkerPreset and taring == false) {
 			dunker.move(0);
 		}
 	}
@@ -171,8 +182,11 @@ void dunkerTask() {
 				taretime = 0;
 				taring = false;
 			}
-		} else if(usingDunkerTarget)
-			dunker.move(dunkerPID.compute(dunker.get_position()));
+		} else if(usingDunkerTarget) {
+			double output = dunkerPID.compute(dunker.get_position());
+			output = ez::util::clamp(output, dunker_current_max_speed);
+			dunker.move(output);
+		}
 		pros::delay(10);
 	}
 }
