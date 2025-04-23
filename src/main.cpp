@@ -1,10 +1,11 @@
 #include "main.h"
-#include "pros/motors.h"
 
+#include "EZ-Template/sdcard.hpp"
 #include "autons.hpp"
 #include "drive.hpp"
+#include "pros/motors.h"
 #include "subsystems.hpp"
-
+#include "ui.hpp"
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -17,9 +18,9 @@ ez::Drive chassis(
 	{-4, -5, -6},  // Left Chassis Ports (negative port will reverse it!)
 	{1, 2, 3},	   // Right Chassis Ports (negative port will reverse it!)
 
-    21,      // IMU Port
-    2.87281274484,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
-    450);   // Wheel RPM = cartridge * (motor gear / wheel gear)
+	21,				// IMU Port
+	2.87281274484,	// Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
+	450);			// Wheel RPM = cartridge * (motor gear / wheel gear)
 
 // Uncomment the trackers you're using here!
 // - `8` and `9` are smart ports (making these negative will reverse the sensor)
@@ -50,10 +51,11 @@ void initialize() {
 	//  - ignore this if you aren't using a vertical tracker
 	// chassis.odom_tracker_left_set(&vert_tracker);
 
-  // Configure your chassis controls
-  chassis.opcontrol_curve_buttons_toggle(false);   // Enables modifying the controller curve with buttons on the joysticks
-  chassis.opcontrol_drive_activebrake_set(2.0);   // Sets the active brake kP. We recommend ~2.  0 will disable.
-  chassis.opcontrol_curve_default_set(3.0, 0.0);  // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
+	// Configure your chassis controls
+	chassis.opcontrol_curve_buttons_toggle(false);	// Enables modifying the controller curve with buttons on the joysticks
+	chassis.opcontrol_drive_activebrake_set(2.0);	// Sets the active brake kP. We recommend ~2.  0 will disable.
+	chassis.opcontrol_curve_default_set(
+		3.0, 0.0);	// Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
 
 	// Set the drive to your own constants from autons.cpp!
 	default_constants();
@@ -62,22 +64,25 @@ void initialize() {
 	// chassis.opcontrol_curve_buttons_left_set(pros::E_CONTROLLER_DIGITAL_LEFT, pros::E_CONTROLLER_DIGITAL_RIGHT);  // If using tank, only the left side is
 	// used. chassis.opcontrol_curve_buttons_right_set(pros::E_CONTROLLER_DIGITAL_Y, pros::E_CONTROLLER_DIGITAL_A);
 
-  // Autonomous Selector using LLEMU
-  ez::as::auton_selector.autons_add({
-      {"blue 4 + 1 pos", blue_4pos},
-      {"blue 6 + 1 ring neg", blue_7neg},
-      {"red 4 + 1 pos", red_4pos}, 
-      {"red 6 + 1 ring neg", red_7neg}, 
-      {"test color sort", testauto}
-  });
+	// Autonomous Selector using LLEMU
+	auton_sel.selector_populate({{blue_4pos, "blue_4pos", "blue 4 + 1 pos", blue},
+								 {blue_6pos, "blue_6pos", "blue 6 + 1 pos", blue},
+								 {blue_6neg, "blue_6neg", "blue 6 ring neg", blue},
+								 {blue_7neg, "blue_7neg", "blue 6 + 1 ring neg", blue},
+								 {red_4pos, "red_4pos", "red 4 + 1 pos", red},
+								 {red_6pos, "red_6pos", "red 6 + 1 pos", red},
+								 {red_6neg, "red_6neg", "red 6 ring neg", red},
+								 {red_7neg, "red_7neg", "red 6 + 1 ring neg", red},
+								 {testauto, "testauto", "test color sort", gray}});
 
 	// Initialize chassis and auton selector
 	chassis.initialize();
-	ez::as::initialize();
+	uiInit();
 	pros::Task ColorTask(colorTask);
 	pros::Task MogoTask(mogoTask);
 	pros::Task DunkerTask(dunkerTask);
 	pros::Task UnjamTask(unjamTask);
+	pros::Task PathViewerTask(pathViewerTask);
 	master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
 
 	dunker.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -136,9 +141,9 @@ void autonomous() {
 	to be consistent
 	*/
 	autonMode = AutonMode::PLAIN;
-  autonPath = {};
-	ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
-	getPathInjected();
+	autonPath = {};
+	if(delayBool) delayMillis(1000);
+	auton_sel.selector_callback();	// Calls selected auton from autonomous selector
 }
 
 /**
@@ -173,17 +178,18 @@ void ez_screen_task() {
 										 "\na: " + util::to_string_with_precision(chassis.odom_theta_get()),
 									 1);  // Don't override the top Page line
 
-          // Display all trackers that are being used
-          screen_print_tracker(chassis.odom_tracker_left, "l", 4);
-          screen_print_tracker(chassis.odom_tracker_right, "r", 5);
-          screen_print_tracker(chassis.odom_tracker_back, "b", 6);
-          screen_print_tracker(chassis.odom_tracker_front, "f", 7);
-        } else if (ez::as::page_blank_is_on(1)) {
-          ez::screen_print("Left: " + util::to_string_with_precision(chassis.drive_sensor_left()) +
-                           "\nRight: " + util::to_string_with_precision(chassis.drive_sensor_right()), 1);
-        }
-      }
-    }
+					// Display all trackers that are being used
+					screen_print_tracker(chassis.odom_tracker_left, "l", 4);
+					screen_print_tracker(chassis.odom_tracker_right, "r", 5);
+					screen_print_tracker(chassis.odom_tracker_back, "b", 6);
+					screen_print_tracker(chassis.odom_tracker_front, "f", 7);
+				} else if(ez::as::page_blank_is_on(1)) {
+					ez::screen_print("Left: " + util::to_string_with_precision(chassis.drive_sensor_left()) +
+										 "\nRight: " + util::to_string_with_precision(chassis.drive_sensor_right()),
+									 1);
+				}
+			}
+		}
 
 		// Remove all blank pages when connected to a comp switch
 		else {
@@ -245,14 +251,14 @@ void ez_template_extras() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-  // This is preference to what you like to drive on
-  chassis.drive_brake_set(pros::E_MOTOR_BRAKE_BRAKE);
-  setMogo(false);
-  tareDunker();
+	// This is preference to what you like to drive on
+	chassis.drive_brake_set(pros::E_MOTOR_BRAKE_BRAKE);
+	setMogo(false);
+	tareDunker();
 
-  while (true) {
-    // Gives you some extras to make EZ-Template ezier
-    // ez_template_extras();
+	while(true) {
+		// Gives you some extras to make EZ-Template ezier
+		// ez_template_extras();
 
 		chassis.opcontrol_tank();  // Tank control
 		// chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
@@ -266,7 +272,7 @@ void opcontrol() {
 		setIntakeOp();
 		setDunkerOp();
 		setMogoOp();
-    setDoinkerOp();
+		setDoinkerOp();
 
 		pros::delay(ez::util::DELAY_TIME);	// This is used for timer calculations!  Keep this ez::util::DELAY_TIME
 	}

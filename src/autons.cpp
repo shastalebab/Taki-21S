@@ -57,7 +57,6 @@ void testauto() {
   allianceColor = Colors::RED;
   setIntake(127);
   setMogo(true);
-  pros::delay(1000000);
 }
 
 //
@@ -256,6 +255,33 @@ void red_6pos() {
 //
 // BLUE NEGATIVE
 //
+
+void blue_solowp() {
+  allianceColor = Colors::BLUE;
+  setPosition(83.5, 8, 238.88);
+	// score alliance and grab mogo
+  setDunker(2000);
+  delayMillis(500);
+	swingSet(ez::LEFT_SWING, 180, 90, 32, ez::ccw);
+	pidWait(Wait::CHAIN);
+  tareDunker();
+  driveSet(-30, 80);
+  pidWaitUntil(-24);
+  setMogo(true);
+	setIntake(127);
+  pidWait(Wait::QUICK);
+  setPosition(93.25, 54);
+	// sweep ring rush rings
+	moveToPoint({109, 65}, fwd, 70);
+  pidWait(Wait::CHAIN);
+	moveToPoint({132, 66}, fwd, 70);
+	pidWait(Wait::WAIT);
+  delayMillis(500);
+	swingSet(ez::LEFT_SWING, 75, 127, 70, ez::ccw);
+	pidWait(Wait::CHAIN);
+	// grab bottom ring of ring stack, then score corner
+	moveToPoint({23, 42}, fwd, 100);
+}
 
 void blue_6neg() {
   allianceColor = Colors::BLUE;

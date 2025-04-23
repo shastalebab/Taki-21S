@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EZ-Template/api.hpp"
+#include "EZ-Template/util.hpp"
 
 
 enum class AutonMode {
@@ -24,18 +25,15 @@ enum class Wait {
 
 class Coordinate {
     public: 
-        double x;
-        double y;
-        double t;
-        double speed;
-        ez::drive_directions facing;
-        MovementType movement;
-
-        ez::e_swing side;
-        ez::e_angle_behavior behavior;
-        double main;
-        double opp;
-        double theta;
+        double x = 0;
+        double y = 0;
+        double t = 0;
+        double main = 127;
+        ez::drive_directions facing = ez::fwd;
+        MovementType movement = MovementType::DRIVE;
+        double opp = 0;
+        ez::e_swing side = ez::LEFT_SWING;
+        ez::e_angle_behavior behavior = ez::cw;
 };
 
 extern AutonMode autonMode;
@@ -48,6 +46,7 @@ Coordinate getArc(Coordinate startpoint, double right, double left, double dista
 Coordinate getArcFromTheta(Coordinate startpoint, double right, double left, double theta);
 std::vector<Coordinate> injectArc(Coordinate startpoint, ez::e_swing side, ez::e_angle_behavior behavior, double main, double opp, double theta, double lookAhead);
 std::vector<Coordinate> injectPath(std::vector<Coordinate> coordList, double lookAhead);
+std::vector<Coordinate> smoothPath(std::vector<Coordinate> coordList, int lookAhead, int smoothing);
 
 // Set position wrappers
 void setPosition(double x, double y);
@@ -69,6 +68,8 @@ void driveSet(double distance, int speed);
 
 // Turn set wrappers
 void turnSet(double theta, int speed);
+void turnSet(Coordinate point, drive_directions direction, int speed);
+void turnSetRelative(double theta, int speed);
 
 // Swing set wrappers
 void swingSet(ez::e_swing side, double theta, double main, double opp, ez::e_angle_behavior behavior);
@@ -79,3 +80,4 @@ void swingSet(ez::e_swing side, double theta, double main);
 // Print path
 void getPath();
 void getPathInjected();
+void getPathSmooth();

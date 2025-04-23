@@ -30,7 +30,7 @@ Coordinate getArc(Coordinate startpoint, double right, double left, double dista
 	// Get the coordinate within the reference frame of the robot of the end point
 	double radius = (right + left) / (right - left) * (width / 2);
 	double theta = ((right - left) / width * distance) + (startpoint.t * M_PI / 180);
-	
+
 	double relative_x = -((-radius * cos(theta) + radius) - (-radius * cos(startpoint.t * M_PI / 180) + radius));
 	double relative_y = -((radius * sin(theta)) - (radius * sin(startpoint.t * M_PI / 180)));
 
@@ -38,7 +38,7 @@ Coordinate getArc(Coordinate startpoint, double right, double left, double dista
 	if(theta < 0) theta += 360;
 	theta = fmod(theta, 360);
 
-	Coordinate point_relative = {relative_x, relative_y, theta, (right + left) / 2, fwd};
+	Coordinate point_relative = {relative_x, relative_y, theta};
 
 	// Translate the point's x and y values by the start point's x and y values
 	point_relative.x += startpoint.x;
@@ -52,11 +52,11 @@ Coordinate getArcFromTheta(Coordinate startpoint, e_swing side, e_angle_behavior
 	double radius = (right + left) / (right - left) * (width / 2);
 	theta = fmod(theta, 360);
 	if(theta < 0) theta += 360;
-	
+
 	double relative_x = -((-radius * cos(theta * M_PI / 180) + radius) - (-radius * cos(startpoint.t * M_PI / 180) + radius));
 	double relative_y = -((radius * sin(theta * M_PI / 180)) - (radius * sin(startpoint.t * M_PI / 180)));
 
-	Coordinate point_relative = {relative_x, relative_y, theta, (right + left) / 2, fwd};
+	Coordinate point_relative = {relative_x, relative_y, theta};
 
 	// Translate the point's x and y values by the start point's x and y values
 	point_relative.x += startpoint.x;
@@ -65,8 +65,7 @@ Coordinate getArcFromTheta(Coordinate startpoint, e_swing side, e_angle_behavior
 	return point_relative;
 }
 
-std::vector<Coordinate> injectArc(Coordinate startpoint, e_swing side, e_angle_behavior behavior, double main, double opp, double theta,
-								  double lookAhead) {
+std::vector<Coordinate> injectArc(Coordinate startpoint, e_swing side, e_angle_behavior behavior, double main, double opp, double theta, double lookAhead) {
 	double left = side == LEFT_SWING ? main : opp;
 	double right = side == RIGHT_SWING ? main : opp;
 
@@ -83,6 +82,8 @@ std::vector<Coordinate> injectArc(Coordinate startpoint, e_swing side, e_angle_b
 	while(!(newDist.t > theta - (3.837 * lookAhead) && newDist.t < theta + (3.837 * lookAhead))) {
 		arciter += arcdist;
 		newDist = getArc(startpoint, right, left, arciter);
+		newDist.movement = MovementType::SWING;
+        newDist.main = main;
 		pointsBar.push_back(newDist);
 	}
 	return pointsBar;
@@ -94,7 +95,7 @@ std::vector<Coordinate> injectPath(std::vector<Coordinate> coordList, double loo
 		for(int i = 0; i < coordList.size() - 1; i++) {
 			if(coordList[i + 1].movement == MovementType::SWING) {
 				std::vector<Coordinate> swingList = injectArc(coordList[i], coordList[i + 1].side, coordList[i + 1].behavior, coordList[i + 1].main,
-															  coordList[i + 1].opp, coordList[i + 1].theta, lookAhead);
+															  coordList[i + 1].opp, coordList[i + 1].t, lookAhead);
 				injectedList.insert(injectedList.end(), swingList.begin(), swingList.end());
 			} else if(coordList[i + 1].movement == MovementType::DRIVE) {
 				drive_directions dir = coordList[i].x > coordList[i + 1].x ? rev : fwd;
@@ -104,8 +105,11 @@ std::vector<Coordinate> injectPath(std::vector<Coordinate> coordList, double loo
 				Coordinate newDist = coordList[i];
 				injectedList.push_back(coordList[i]);
 				while(getDistance(coordList[i], newDist, fwd) < getDistance(coordList[i], coordList[i + 1], fwd)) {
-					newDist.x += errorX * (dir ? 1 : -1);
-					newDist.y += errorY * (dir ? 1 : -1);
+					newDist.x += errorX * (dir ? -1 : 1);
+					newDist.y += errorY * (dir ? -1 : 1);
+					newDist.t = coordList[i + 1].t;
+					newDist.facing = coordList[i + 1].facing;
+					newDist.movement = MovementType::DRIVE;
 					injectedList.push_back(newDist);
 				}
 				injectedList.pop_back();
@@ -113,6 +117,41 @@ std::vector<Coordinate> injectPath(std::vector<Coordinate> coordList, double loo
 		}
 		injectedList.push_back(coordList.back());
 		return injectedList;
+	}
+	return coordList;
+}
+
+std::vector<Coordinate> smoothPath(std::vector<Coordinate> coordList, int lookAhead, int smoothing) {
+	if(coordList.size() > 1) {
+		int stops = coordList.size();
+		for(int i = 0; i < smoothing; i++) {
+			coordList.push_back(coordList.back());
+		}
+		std::vector<Coordinate> smoothList = coordList;
+		Coordinate point_to_face;
+		for(int i = 0; i < stops; i++) {
+			bool checkSwing = false;
+			for(int j = 1; j < smoothing + 1; j++) {
+				if(coordList[i + j].movement == MovementType::SWING) {
+					checkSwing = true;
+					break;
+				}
+			}
+			if(!checkSwing) {
+				point_to_face = smoothList[i + smoothing];
+				smoothList[i].t = getTheta(smoothList[i], point_to_face, smoothList[i + smoothing].facing);
+			}
+			drive_directions dir = coordList[i].x > point_to_face.x ? rev : fwd;
+			double angle = getTheta(smoothList[i], point_to_face, dir);
+			if(coordList[i + 1].movement != MovementType::SWING) {
+				smoothList[i + 1].x = smoothList[i].x + (lookAhead * (sin(angle * M_PI / 180))) * (dir ? -1 : 1);
+				smoothList[i + 1].y = smoothList[i].y + (lookAhead * (cos(angle * M_PI / 180))) * (dir ? -1 : 1);
+			}
+		}
+		for(int i = 0; i < (smoothing); i++) {
+			smoothList.pop_back();
+		}
+		return smoothList;
 	}
 	return coordList;
 }
@@ -186,7 +225,7 @@ void pidWaitUntil(Coordinate coordinate) {
 }
 
 void delayMillis(int millis) {
-    switch(autonMode) {
+	switch(autonMode) {
 		case AutonMode::PLAIN:
 		case AutonMode::ODOM:
 			pros::delay(millis);
@@ -218,7 +257,7 @@ void moveToPoint(Coordinate newpoint, drive_directions direction, int speed) {
 	currentPoint.t = getTheta({currentPoint.x, currentPoint.y}, newpoint, direction);
 	currentPoint.x = newpoint.x;
 	currentPoint.y = newpoint.y;
-	currentPoint.speed = speed;
+	currentPoint.main = speed;
 	currentPoint.facing = direction;
 	currentPoint.movement = MovementType::DRIVE;
 	autonPath.push_back(currentPoint);
@@ -242,7 +281,7 @@ void moveToPoint(Coordinate currentpoint, Coordinate newpoint, drive_directions 
 	currentPoint.x += newpoint.x - currentpoint.x;
 	currentPoint.y += newpoint.y - currentpoint.y;
 	currentPoint.t = getTheta({currentPoint.x, currentPoint.y}, newpoint, direction);
-	currentPoint.speed = speed;
+	currentPoint.main = speed;
 	currentPoint.facing = direction;
 	currentPoint.movement = MovementType::DRIVE;
 	autonPath.push_back(currentPoint);
@@ -270,7 +309,7 @@ void driveSet(double distance, int speed, bool slew) {
 	}
 	currentPoint.x += errorX;
 	currentPoint.y += errorY;
-	currentPoint.speed = speed;
+	currentPoint.main = speed;
 	currentPoint.facing = direction;
 	currentPoint.movement = MovementType::DRIVE;
 	autonPath.push_back(currentPoint);
@@ -294,7 +333,7 @@ void driveSet(double distance, int speed) {
 	}
 	currentPoint.x += errorX;
 	currentPoint.y += errorY;
-	currentPoint.speed = speed;
+	currentPoint.main = speed;
 	currentPoint.facing = direction;
 	currentPoint.movement = MovementType::DRIVE;
 	autonPath.push_back(currentPoint);
@@ -311,6 +350,37 @@ void turnSet(double theta, int speed) {
 			chassis.pid_turn_set(theta * okapi::degree, speed);
 			break;
 		default:
+			break;
+	}
+	currentPoint.movement = MovementType::TURN;
+	currentPoint.t = theta;
+	autonPath.push_back(currentPoint);
+}
+
+void turnSet(Coordinate point, drive_directions direction, int speed) {
+	double theta = getTheta(currentPoint, point, direction);
+	switch(autonMode) {
+		case AutonMode::PLAIN:
+		case AutonMode::ODOM:
+			chassis.pid_turn_set(theta * okapi::degree, speed);
+			break;
+		default:
+			break;
+	}
+	currentPoint.movement = MovementType::TURN;
+	currentPoint.t = theta;
+	autonPath.push_back(currentPoint);
+}
+
+void turnSetRelative(double theta, int speed) {
+	switch(autonMode) {
+		case AutonMode::PLAIN:
+		case AutonMode::ODOM:
+			theta += chassis.odom_theta_get();
+			chassis.pid_turn_set((theta)*okapi::degree, speed);
+			break;
+		default:
+			theta += currentPoint.t;
 			break;
 	}
 	currentPoint.movement = MovementType::TURN;
@@ -337,10 +407,10 @@ void swingSet(e_swing side, double theta, double main, double opp, e_angle_behav
 	currentPoint.t = theta;
 	currentPoint.movement = MovementType::SWING;
 	currentPoint.side = side;
-	currentPoint.theta = theta;
 	currentPoint.main = main;
 	currentPoint.opp = opp;
 	currentPoint.behavior = behavior;
+    currentPoint.facing = (side == LEFT_SWING && behavior == cw) || (side == RIGHT_SWING && behavior == ccw) ? fwd : rev;
 	autonPath.push_back(currentPoint);
 }
 
@@ -359,10 +429,10 @@ void swingSet(e_swing side, double theta, double main, e_angle_behavior behavior
 	currentPoint.t = theta;
 	currentPoint.movement = MovementType::SWING;
 	currentPoint.side = side;
-	currentPoint.theta = theta;
 	currentPoint.main = main;
 	currentPoint.opp = 0;
 	currentPoint.behavior = behavior;
+    currentPoint.facing = (side == LEFT_SWING && behavior == cw) || (side == RIGHT_SWING && behavior == ccw) ? fwd : rev;
 	autonPath.push_back(currentPoint);
 }
 
@@ -382,10 +452,10 @@ void swingSet(e_swing side, double theta, double main, double opp) {
 	currentPoint.t = theta;
 	currentPoint.movement = MovementType::SWING;
 	currentPoint.side = side;
-	currentPoint.theta = theta;
 	currentPoint.main = main;
 	currentPoint.opp = opp;
 	currentPoint.behavior = behavior;
+    currentPoint.facing = (side == LEFT_SWING && behavior == cw) || (side == RIGHT_SWING && behavior == ccw) ? fwd : rev;
 	autonPath.push_back(currentPoint);
 }
 
@@ -405,10 +475,10 @@ void swingSet(e_swing side, double theta, double main) {
 	currentPoint.t = theta;
 	currentPoint.movement = MovementType::SWING;
 	currentPoint.side = side;
-	currentPoint.theta = theta;
 	currentPoint.main = main;
 	currentPoint.opp = 0;
 	currentPoint.behavior = behavior;
+    currentPoint.facing = (side == LEFT_SWING && behavior == cw) || (side == RIGHT_SWING && behavior == ccw) ? fwd : rev;
 	autonPath.push_back(currentPoint);
 }
 
@@ -428,6 +498,15 @@ void getPathInjected() {
 	auto injected = injectPath(autonPath, 2);
 	cout << "===========================================" << endl;
 	for(auto point : injected) {
+		cout << "(" << point.x << ", " << point.y << ")" << endl;
+	}
+	cout << "===========================================" << endl;
+}
+
+void getPathSmooth() {
+	auto smoothened = smoothPath(injectPath(autonPath, 1), 1, 4);
+	cout << "===========================================" << endl;
+	for(auto point : smoothened) {
 		cout << "(" << point.x << ", " << point.y << ")" << endl;
 	}
 	cout << "===========================================" << endl;

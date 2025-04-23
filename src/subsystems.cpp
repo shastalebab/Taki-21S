@@ -1,3 +1,5 @@
+#include "subsystems.hpp"
+#include "liblvgl/misc/lv_color.h"
 #include "main.h"  // IWYU pragma: keep
 #include "pros/misc.h"
 
@@ -96,15 +98,12 @@ void discard() {
 	ringDetected = false;
 }
 
-lv_obj_t* colorind = lv_obj_create(lv_scr_act());
-const lv_color_t colorList[5] = {lv_color_hex(0xaa2f17), lv_color_hex(0x1744aa), lv_color_hex(0x575757)};
-
 void colorSet(Colors color) {
 	// Set on screen elements to the corresponding color
-	lv_obj_align(colorind, LV_ALIGN_TOP_RIGHT, -36, 36);
-	lv_obj_set_style_radius(colorind, 96, LV_PART_MAIN);
-	lv_obj_move_foreground(colorind);
-	lv_obj_set_style_bg_color(colorind, colorList[(int)color], LV_PART_MAIN);
+	lv_color32_t color_use = theme_accent;
+	if(color == Colors::RED) color_use = red;
+	else if(color == Colors::BLUE) color_use = blue;
+	lv_obj_set_style_outline_color(colorind, color_use, LV_PART_MAIN);
 }
 
 Colors colorGet() {
