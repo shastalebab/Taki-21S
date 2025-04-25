@@ -2,6 +2,7 @@
 
 #include "EZ-Template/util.hpp"
 #include "main.h"  // IWYU pragma: keep
+#include "okapi/api/units/QLength.hpp"
 
 AutonMode autonMode = AutonMode::DRIVER;
 const double width = 11.5;
@@ -202,11 +203,22 @@ void pidWait(Wait type) {
 	}
 }
 
-void pidWaitUntil(double distance) {
+void pidWaitUntil(okapi::QLength distance) {
 	switch(autonMode) {
 		case AutonMode::PLAIN:
 		case AutonMode::ODOM:
-			chassis.pid_wait_until(distance * okapi::inch);
+			chassis.pid_wait_until(distance);
+			break;
+		default:
+			break;
+	}
+}
+
+void pidWaitUntil(okapi::QAngle theta) {
+	switch(autonMode) {
+		case AutonMode::PLAIN:
+		case AutonMode::ODOM:
+			chassis.pid_wait_until(theta);
 			break;
 		default:
 			break;

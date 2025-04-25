@@ -10,7 +10,7 @@ extern Drive chassis;
 inline ez::PID dunkerPID(1.35, .04, .75, 20, "dunker");
 
 inline pros::Optical colorSens(11);
-inline pros::Distance distanceSens(19);
+inline pros::Distance distanceSens(12);
 inline pros::adi::LineSensor hookSens('B');
 
 inline pros::Motor intake(7);
@@ -20,10 +20,12 @@ inline ez::Piston mogomech('A');
 inline ez::Piston doinker('C');
 
 void setIntake(int speed);
+void setIndexing();
 void setDunker(int position);
-void setMogo(bool state);
-void setDoinker(bool state);
 void tareDunker();
+void setMogo(bool state);
+void primeMogo();
+void setDoinker(bool state);
 
 void setIntakeOp();
 void setDunkerOp();
@@ -47,4 +49,3 @@ enum class AutoMogo {
 };
 
 extern Colors allianceColor;
-extern AutoMogo mogoState;

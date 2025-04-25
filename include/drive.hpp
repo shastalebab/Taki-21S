@@ -2,6 +2,8 @@
 
 #include "EZ-Template/api.hpp"
 #include "EZ-Template/util.hpp"
+#include "okapi/api/units/QAngle.hpp"
+#include "okapi/api/units/QLength.hpp"
 
 
 enum class AutonMode {
@@ -54,7 +56,8 @@ void setPosition(double x, double y, double t);
 
 // Wait wrappers
 void pidWait(Wait type);
-void pidWaitUntil(double distance);
+void pidWaitUntil(okapi::QLength distance);
+void pidWaitUntil(okapi::QAngle distance);
 void pidWaitUntil(Coordinate coordinate);
 void delayMillis(int millis);
 

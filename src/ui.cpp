@@ -2,7 +2,9 @@
 #include "liblvgl/core/lv_obj_scroll.h"
 #include "liblvgl/core/lv_obj_style.h"
 #include "liblvgl/core/lv_obj_tree.h"
+#include "liblvgl/extra/widgets/list/lv_list.h"
 #include "liblvgl/font/lv_font.h"
+#include "liblvgl/widgets/lv_label.h"
 #include "main.h"  // IWYU pragma: keep
 
 // // // // // // Tasks & Non-UI // // // // // //
@@ -317,6 +319,7 @@ void autoSelectorInit() {
 	lv_obj_set_style_text_line_space(autonUp, -12, LV_PART_MAIN);
 	lv_obj_set_style_text_line_space(autonDown, -12, LV_PART_MAIN);
 	lv_obj_set_style_pad_all(autonDesc, 5, LV_PART_MAIN);
+	lv_obj_set_style_pad_right(autonDesc, 85, LV_PART_MAIN);
 	lv_obj_set_style_pad_hor(autonTable, 0, LV_PART_MAIN);
 
 	lv_obj_set_scrollbar_mode(autonTable, LV_SCROLLBAR_MODE_OFF);
@@ -338,6 +341,7 @@ void autoSelectorInit() {
 		lv_obj_set_style_outline_width(new_auto, 6, LV_STATE_PRESSED);
 		lv_obj_set_style_bg_opa(new_auto, 120, LV_STATE_CHECKED);
 		lv_obj_set_style_bg_opa(new_auto, 60, LV_STATE_PRESSED);
+		lv_obj_set_style_pad_hor(new_auto, 8, LV_PART_MAIN);
 		lv_obj_add_event_cb(new_auto, SelectAuton, LV_EVENT_CLICKED, &auton_sel.autons[i]);
 	}
 }

@@ -12,7 +12,7 @@ bool usingDunkerTarget = true;
 
 // Internal targets to aid tasks
 Colors allianceColor = Colors::NEUTRAL;
-AutoMogo mogoState = AutoMogo::OFF;
+bool mogoState = false;
 int intakeTarget = 0;
 bool dunkerState = 0;
 
@@ -21,6 +21,7 @@ bool jamState = false;
 bool ringDetected = false;
 bool discarding = false;
 bool taring = false;
+bool indexing = false;
 
 //
 // Wrappers
@@ -31,6 +32,10 @@ void setIntake(int speed) {
 		intake.move(speed);
 		intakeTarget = speed;
 	}
+}
+
+void setIndexing() {
+	indexing = true;
 }
 
 const int dunker_down_speed = 100;
@@ -48,16 +53,20 @@ void setDunker(int position) {
 	}
 }
 
+void tareDunker() {
+	if(autonMode != AutonMode::BRAIN) taring = true;
+}
+
 void setMogo(bool state) {
 	if(autonMode != AutonMode::BRAIN) mogomech.set(state);
 }
 
-void setDoinker(bool state) {
-	if(autonMode != AutonMode::BRAIN) doinker.set(state);
+void primeMogo() {
+	mogoState = true;
 }
 
-void tareDunker() {
-	if(autonMode != AutonMode::BRAIN) taring = true;
+void setDoinker(bool state) {
+	if(autonMode != AutonMode::BRAIN) doinker.set(state);
 }
 
 //
@@ -83,10 +92,18 @@ void setDunkerOp() {
 			setDunker(180);
 		else
 			tareDunker();
+	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
+		setDunker(240);
+		dunkerPreset = true;
+		usingDunkerTarget = true;
 	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
 		tareDunker();
 	} else {
-		if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
+		if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
+			setDunker(2600);
+			usingDunkerTarget = true;
+			dunkerPreset = true;
+		} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
 			dunker.move(127);
 			setDunker(dunker.get_position());
 			usingDunkerTarget = false;
@@ -97,6 +114,7 @@ void setDunkerOp() {
 			usingDunkerTarget = false;
 			dunkerPreset = false;
 		} else if(!dunkerPreset and taring == false) {
+			usingDunkerTarget = true;
 			dunker.move(0);
 		}
 	}
@@ -161,6 +179,9 @@ void colorTask() {
 			} else if(discarding) {
 				if(hookSens.get_value() < 2800 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
 				if(ringDetected && hookSens.get_value() > 2800) discard();
+			} else if((allianceColor == color) && indexing) {
+				setIntake(0);
+				indexing = false;
 			}
 		}
 		pros::delay(10);
@@ -173,10 +194,10 @@ void colorTask() {
 
 void mogoTask() {
 	while(true) {
-		if(pros::competition::is_autonomous() && mogoState == AutoMogo::PRIMED) {
-			if(distanceSens.get() < 40) {
-				mogomech.set(true);
-				mogoState = AutoMogo::OFF;
+		if(pros::competition::is_autonomous() && mogoState == true) {
+			if(distanceSens.get() < 45) {
+				setMogo(true);
+				mogoState = false;
 			}
 		}
 		pros::delay(10);
