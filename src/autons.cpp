@@ -31,12 +31,12 @@ void default_constants() {
 	// Exit conditions
 	chassis.pid_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);
 	chassis.pid_swing_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 500_ms);
-	chassis.pid_drive_exit_condition_set(90_ms, 1_in, 250_ms, 3_in, 500_ms, 500_ms);
-	chassis.pid_odom_turn_exit_condition_set(90_ms, 3_deg, 250_ms, 7_deg, 500_ms, 750_ms);
+	chassis.pid_drive_exit_condition_set(50_ms, 2_in, 160_ms, 6_in, 200_ms, 200_ms);
+	chassis.pid_odom_turn_exit_condition_set(50_ms, 4_deg, 170_ms, 8_deg, 500_ms, 750_ms);
 	chassis.pid_odom_drive_exit_condition_set(90_ms, 1_in, 250_ms, 3_in, 500_ms, 750_ms);
-	chassis.pid_turn_chain_constant_set(3_deg);
+	chassis.pid_turn_chain_constant_set(4_deg);
 	chassis.pid_swing_chain_constant_set(5_deg);
-	chassis.pid_drive_chain_constant_set(3_in);
+	chassis.pid_drive_chain_constant_set(6_in);
 
 	// Slew constants
 	chassis.slew_turn_constants_set(3_deg, 70);
@@ -137,12 +137,12 @@ void red_6neg() {
 	turnSet(225, 127);
 	pidWait(Wait::CHAIN);
 	// score corner
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127);
-	pidWait(Wait::QUICK);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-12, 127);
 	pidWait(Wait::CHAIN);
 	// grab mid top ring
@@ -193,12 +193,12 @@ void red_7neg() {
 	turnSet(225, 127);
 	pidWait(Wait::CHAIN);
 	// score corner
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127);
-	pidWait(Wait::QUICK);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-12, 127);
 	pidWait(Wait::CHAIN);
 	// grab mid top ring
@@ -248,12 +248,12 @@ void red_4pos() {
 	driveSet(24, 100);
 	pidWait(Wait::CHAIN);
 	turnSet(135, 100);
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-12, 127);
 	pidWait(Wait::CHAIN);
 	// score mid top ring
@@ -304,12 +304,12 @@ void red_6pos() {
 	driveSet(20, 100);
 	pidWait(Wait::CHAIN);
 	turnSet(135, 100);
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-8, 127);
 	pidWait(Wait::CHAIN);
 	// score mid top ring
@@ -413,12 +413,12 @@ void blue_6neg() {
 	turnSet(135, 127);
 	pidWait(Wait::CHAIN);
 	// score corner
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127);
-	pidWait(Wait::QUICK);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-12, 127);
 	pidWait(Wait::CHAIN);
 	// grab mid top ring
@@ -469,12 +469,12 @@ void blue_7neg() {
 	turnSet(135, 127);
 	pidWait(Wait::CHAIN);
 	// score corner
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127);
-	pidWait(Wait::QUICK);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-12, 127);
 	pidWait(Wait::CHAIN);
 	// grab mid top ring
@@ -524,12 +524,12 @@ void blue_4pos() {
 	driveSet(24, 100);
 	pidWait(Wait::QUICK);
 	turnSet(-135, 100);
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-12, 127);
 	pidWait(Wait::CHAIN);
 	// score mid top ring
@@ -580,12 +580,12 @@ void blue_6pos() {
 	driveSet(20, 100);
 	pidWait(Wait::CHAIN);
 	turnSet(-135, 100);
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127);
-	pidWait(Wait::WAIT);
+	driveSet(24, 127, true);
+	pidWait(Wait::CHAIN);
 	driveSet(-8, 127);
 	pidWait(Wait::CHAIN);
 	// score mid top ring
@@ -612,6 +612,19 @@ void blue_6pos() {
 void move_forward() {
 	chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
 	chassis.pid_wait();
+}
+
+void testexitconditions() {
+  driveSet(-24, 80);
+  primeMogo();
+  pidWait(Wait::WAIT);
+  setIntake(127);
+  turnSet(90, 100);
+  pidWait(Wait::WAIT);
+  driveSet(24, 127);
+  pidWait(Wait::WAIT);
+  driveSet(-36, 127);
+  pidWait(Wait::WAIT);
 }
 
 void red_testauto() {

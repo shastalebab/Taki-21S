@@ -1,12 +1,20 @@
 #include "subsystems.hpp"
+#include <algorithm>
 
 #include "drive.hpp"
 #include "liblvgl/misc/lv_color.h"
 #include "main.h"  // IWYU pragma: keep
 #include "pros/misc.h"
 
-
 // Values to determine dunker behavior
+const int dunker_down_speed = 100;
+const int dunker_up_speed = 127;
+int dunker_current_max_speed = dunker_up_speed;
+
+const vector<int> scoreStates = {10, 180};
+const vector<int> descoreStates = {1250, 1300, 1400, 1450, 1550, 1700};
+
+bool dunkerScoringState = true;
 bool dunkerPreset = false;
 bool usingDunkerTarget = true;
 
@@ -14,7 +22,7 @@ bool usingDunkerTarget = true;
 Colors allianceColor = Colors::NEUTRAL;
 bool mogoState = false;
 int intakeTarget = 0;
-bool dunkerState = 0;
+int dunkerState = 0;
 
 // Internal states to avoid tasks clashing
 bool jamState = false;
@@ -38,10 +46,6 @@ void setIndexing() {
 	indexing = true;
 }
 
-const int dunker_down_speed = 100;
-const int dunker_up_speed = 127;
-
-int dunker_current_max_speed = dunker_up_speed;
 void setDunker(int position) {
 	if(autonMode != AutonMode::BRAIN) {
 		if(position > dunkerPID.target_get()) {
@@ -61,9 +65,7 @@ void setMogo(bool state) {
 	if(autonMode != AutonMode::BRAIN) mogomech.set(state);
 }
 
-void primeMogo() {
-	mogoState = true;
-}
+void primeMogo() { mogoState = true; }
 
 void setDoinker(bool state) {
 	if(autonMode != AutonMode::BRAIN) doinker.set(state);
@@ -74,35 +76,44 @@ void setDoinker(bool state) {
 //
 
 void setIntakeOp() {
-	if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L2)) {
+	if(master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
+		if(!indexing) setIntake(127);
+		setDunker(320);
+		dunkerPreset = true;
+		usingDunkerTarget = true;
+		setIndexing();
+	} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
 		setIntake(127);
-	} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L1)) {
+	else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
 		setIntake(-127);
-	} else
+	else {
 		setIntake(0);
+		indexing = false;
+	}
 }
 
 void setDunkerOp() {
 	if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)) {
-		dunkerState = !dunkerState;
+		vector<int> dunkerStates = dunkerScoringState ? scoreStates : descoreStates;
+
+		dunkerState++;
+		dunkerState %= dunkerStates.size();
 		dunkerPreset = true;
 		usingDunkerTarget = true;
-		if(dunker.get_position() > 300) dunkerState = true;
-		if(dunkerState)
-			setDunker(180);
-		else
+		if(dunker.get_position() > 300 && dunkerScoringState) dunkerState = 1;
+		if(dunkerState == 0 && dunkerScoringState)
 			tareDunker();
-	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)) {
-		setDunker(240);
-		dunkerPreset = true;
-		usingDunkerTarget = true;
+		else
+			setDunker(dunkerStates[dunkerState]);
 	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
 		tareDunker();
 	} else {
+		dunkerScoringState = true;
 		if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
-			setDunker(2600);
 			usingDunkerTarget = true;
 			dunkerPreset = true;
+			dunkerScoringState = false;
+			setDunker(descoreStates[dunkerState]);
 		} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
 			dunker.move(127);
 			setDunker(dunker.get_position());
@@ -173,13 +184,13 @@ void colorTask() {
 	while(true) {
 		color = colorGet();
 		colorSet(color);
-		if(!jamState && pros::competition::is_autonomous() && !pros::competition::is_disabled()) {
+		if(!jamState && !pros::competition::is_disabled()) {
 			if(colorCompare(color) && !discarding) {
 				discarding = true;
 			} else if(discarding) {
 				if(hookSens.get_value() < 2800 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
 				if(ringDetected && hookSens.get_value() > 2800) discard();
-			} else if((allianceColor == color) && indexing) {
+			} else if(allianceColor == color && allianceColor != Colors::NEUTRAL && indexing) {
 				setIntake(0);
 				indexing = false;
 			}
@@ -231,7 +242,7 @@ void unjamTask() {
 	int jamtime = 0;
 	while(true) {
 		if(intake.get_temperature() < 50) {
-			if(!dunkerState) {
+			if(dunkerState != 1 && dunkerScoringState == true) {
 				if(!jamState && intakeTarget != 0 && abs(intake.get_actual_velocity()) <= 20) {
 					jamtime++;
 					if(jamtime > 20) {

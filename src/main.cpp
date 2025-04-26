@@ -1,4 +1,5 @@
 #include "main.h"
+#include "subsystems.hpp"
 
 // Chassis constructor
 ez::Drive chassis(
@@ -38,7 +39,8 @@ void initialize() {
 								 {blue_7neg, "blue_7neg", "blue 6 + 1 ring neg", blue},
 								 {red_testauto, "red_testauto", "test color sort red", red},
 								 {blue_testauto, "blue_testauto", "test color sort blue", blue},
-								 {move_forward, "move_forward", "move forward 24 inches", gray}});
+								 {move_forward, "move_forward", "move forward 24 inches", gray},
+								{testexitconditions, "test exit", "test exit conditions", lv_color_hex(0x00FF00)}});
 
 	// Initialize chassis and auton selector
 	chassis.initialize();

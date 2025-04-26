@@ -22,5 +22,6 @@ void blue_6pos();
 
 // default/test autons
 void move_forward();
+void testexitconditions();
 void red_testauto();
 void blue_testauto();
