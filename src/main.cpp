@@ -1,4 +1,6 @@
 #include "main.h"
+#include "EZ-Template/util.hpp"
+#include "pros/misc.h"
 #include "subsystems.hpp"
 
 // Chassis constructor
@@ -8,7 +10,7 @@ ez::Drive chassis(
 	{1, 2, 3},	   // Right Chassis Ports (negative port will reverse it!)
 
 	21,				// IMU Port
-	2.87281274484,	// Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
+	2.8469137379,	// Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
 	450);			// Wheel RPM = cartridge * (motor gear / wheel gear)
 
 void initialize() {
@@ -59,7 +61,19 @@ void disabled() {
 	// . . .
 }
 
-void competition_initialize() { autonMode = AutonMode::BRAIN; }
+void competition_initialize() { 
+	autonMode = AutonMode::BRAIN;
+	bool checked = false;
+	while(true) {
+		if(hookSens.get_value() < 2800) checked = true;
+		if(checked == true && hookSens.get_value() > 2800) {
+			getPos();
+			checked = false;
+		}
+
+		pros::delay(util::DELAY_TIME);
+	}
+ }
 
 void autonomous() {
 	chassis.pid_targets_reset();				// Resets PID targets to 0

@@ -26,6 +26,7 @@ void tareDunker();
 void setMogo(bool state);
 void primeMogo();
 void setDoinker(bool state);
+void getPos();
 
 void setIntakeOp();
 void setDunkerOp();

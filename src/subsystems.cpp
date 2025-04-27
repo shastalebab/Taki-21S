@@ -1,10 +1,4 @@
-#include "subsystems.hpp"
-#include <algorithm>
-
-#include "drive.hpp"
-#include "liblvgl/misc/lv_color.h"
 #include "main.h"  // IWYU pragma: keep
-#include "pros/misc.h"
 
 // Values to determine dunker behavior
 const int dunker_down_speed = 100;
@@ -69,6 +63,15 @@ void primeMogo() { mogoState = true; }
 
 void setDoinker(bool state) {
 	if(autonMode != AutonMode::BRAIN) doinker.set(state);
+}
+
+bool setreset = false;
+
+void getPos() {
+	setreset = !setreset;
+	if(setreset) chassis.drive_sensor_reset();
+	else cout << "Left: " << util::to_string_with_precision(chassis.drive_sensor_left()) <<
+	"\nRight: " << util::to_string_with_precision(chassis.drive_sensor_right()) << "\n";
 }
 
 //
