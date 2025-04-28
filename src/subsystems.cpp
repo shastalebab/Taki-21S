@@ -5,7 +5,7 @@ const int dunker_down_speed = 100;
 const int dunker_up_speed = 127;
 int dunker_current_max_speed = dunker_up_speed;
 
-const vector<int> scoreStates = {10, 180};
+const vector<int> scoreStates = {10, 130};
 const vector<int> descoreStates = {1250, 1300, 1400, 1450, 1550, 1700};
 
 bool dunkerScoringState = true;
