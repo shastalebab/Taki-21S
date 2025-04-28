@@ -227,7 +227,7 @@ void dunkerTask() {
 			if(taretime > 10) {
 				dunker.move(0);
 				pros::delay(10);
-				dunker.set_zero_position(-60);
+				dunker.set_zero_position(-70);
 				setDunker(10);
 				taretime = 0;
 				taring = false;
