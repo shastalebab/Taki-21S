@@ -13,7 +13,7 @@ const lv_color32_t gray = lv_color_hex(0x575757);
 // Auton selector
 class AutonObj {
     public:
-        function<void()> callback = testexitconditions;
+        function<void()> callback = red_testauto;
         string name = "no name";
         string desc = "no description";
         lv_color32_t color = theme_color;
@@ -22,7 +22,7 @@ class AutonObj {
 class AutonSel {
     public:
         vector<AutonObj> autons = {};
-        function<void()> selector_callback = testexitconditions;
+        function<void()> selector_callback = red_testauto;
         void selector_populate(vector<AutonObj> auton_list);
 };
 

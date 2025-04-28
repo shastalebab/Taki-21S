@@ -29,13 +29,13 @@ void initialize() {
 	default_constants();
 
 	// Autonomous Selector using LLEMU
-	auton_sel.selector_populate({{red_4pos, "red_4pos", "red 4 + 1 pos", red},
-								 {red_6pos, "red_6pos", "red 6 + 1 pos", red},
+	auton_sel.selector_populate({{red_goalrush, "red_goalrush", "red 4 + 1 + 1 pos", red},
+								 {red_5pos, "red_5pos", "red 5 + 1 pos", red},
 								 {red_solowp, "red_solowp", "red negative solo win point", red},
 								 {red_6neg, "red_6neg", "red 6 ring neg", red},
 								 {red_7neg, "red_7neg", "red 6 + 1 ring neg", red},
-								 {blue_4pos, "blue_4pos", "blue 4 + 1 pos", blue},
-								 {blue_6pos, "blue_6pos", "blue 6 + 1 pos", blue},
+								 {blue_goalrush, "blue_goalrush", "blue 4 + 1 + 1 pos", blue},
+								 {blue_5pos, "blue_5pos", "blue 5 + 1 pos", blue},
 								 {blue_solowp, "blue_solowp", "blue negative solo win point", blue},
 								 {blue_6neg, "blue_6neg", "blue 6 ring neg", blue},
 								 {blue_7neg, "blue_7neg", "blue 6 + 1 ring neg", blue},
@@ -46,6 +46,7 @@ void initialize() {
 
 	// Initialize chassis and auton selector
 	chassis.initialize();
+	dunker.tare_position();
 	uiInit();
 	pros::Task ColorTask(colorTask);
 	pros::Task MogoTask(mogoTask);

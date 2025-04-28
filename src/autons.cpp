@@ -24,7 +24,7 @@ void default_constants() {
 	chassis.pid_drive_constants_set(20.0, 0.0, 100.0);		   // Fwd/rev constants, used for odom and non odom motions
 	chassis.pid_heading_constants_set(11.0, 0.0, 25.0);		   // Holds the robot straight while going forward without odom
 	chassis.pid_turn_constants_set(3.25, 0.05, 25.0, 15.0);	   // Turn in place constants
-	chassis.pid_swing_constants_set(6.0, 0.0, 65.0);		   // Swing constants
+	chassis.pid_swing_constants_set(10.1, 0.0, 16.0);		   // Swing constants
 	chassis.pid_odom_angular_constants_set(6.5, 0.0, 52.5);	   // Angular control for odom motions
 	chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
 
@@ -89,9 +89,11 @@ void red_solowp() {
 	setMogo(false);
 	// grab mogo
 	moveToPoint({100, 48}, rev, 90);
+	setIntake(0);
 	delayMillis(500);
 	primeMogo();
 	pidWait(Wait::CHAIN);
+	setIntake(127);
 	// grab bottom ring and middle ring
 	turnSet(90, 100);
 	pidWait(Wait::CHAIN);
@@ -144,7 +146,7 @@ void red_6neg() {
 	pidWait(Wait::CHAIN);
 	driveSet(24, 100, true);
 	pidWait(Wait::WAIT);
-	driveSet(-10, 127);
+	driveSet(-16, 127);
 	// grab mid top ring
 	turnSet(90, 100);
 	pidWait(Wait::CHAIN);
@@ -224,59 +226,36 @@ void red_7neg() {
 // RED POSITIVE
 //
 
-void red_4pos() {
+void red_goalrush() {
 	allianceColor = Colors::RED;
-	setPosition(81.25, 18.5, 208);
-	// score alliance and grab mogo
-	driveSet(6.5, 90);
+	setPosition(105.5, 19.75, 30);
+	setIndexing();
+	setDunker(100);
+	setIntake(127);
+	swingSet(ez::RIGHT_SWING, 0, 127, 90, ccw);
+	pidWaitUntil(15_deg);
 	setDunker(2000);
 	pidWait(Wait::WAIT);
-	delayMillis(100);
-	driveSet(-38.6, 90);
+	turnSet(60, 80);
+	pidWait(Wait::CHAIN);
+	driveSet(-24, 80);
 	primeMogo();
-	pidWaitUntil(-29_in);
-	tareDunker();
+	pidWaitUntil(-16_in);
 	setMogo(true);
 	setIntake(127);
+	pidWait(Wait::QUICK);
+	turnSet(140, 90);
 	pidWait(Wait::CHAIN);
-	// score bottom ring
-	turnSet(100, 100);
-	pidWait(Wait::CHAIN);
-	driveSet(22, 100);
-	// score corner
+	driveSet(48, 100, true);
 	pidWait(Wait::WAIT);
-	turnSet(180, 100);
-	pidWait(Wait::CHAIN);
-	driveSet(24, 100);
-	pidWait(Wait::CHAIN);
-	turnSet(135, 100);
-	driveSet(24, 127, true);
-	pidWait(Wait::CHAIN);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
-	driveSet(24, 127, true);
-	pidWait(Wait::CHAIN);
-	driveSet(-12, 127);
-	pidWait(Wait::CHAIN);
-	// score mid top ring
-	turnSet(-90, 100);
-	pidWait(Wait::CHAIN);
-	driveSet(66, 70, true);
-	pidWait(Wait::CHAIN);
-	// touch ladder or go to positive corner
-	if(ladderBool) {
-		swingSet(LEFT_SWING, 135, 127, 50, ccw);
-	} else {
-		driveSet(-12, 127);
-    pidWait(Wait::CHAIN);
-    turnSet(225, 100);
-    pidWait(Wait::CHAIN);
-    driveSet(-60, 127);
-	}
+	driveSet(24, 100);
 	pidWait(Wait::WAIT);
+	driveSet(-60, 100);
 }
 
-void red_6pos() {
+void red_5pos() {
 	allianceColor = Colors::RED;
 	setPosition(81.25, 18.5, 208);
 	// score alliance and grab mogo
@@ -368,9 +347,11 @@ void blue_solowp() {
 	setMogo(false);
 	// grab mogo
 	moveToPoint({44, 48}, rev, 90);
+	setIntake(0);
 	delayMillis(500);
 	primeMogo();
 	pidWait(Wait::CHAIN);
+	setIntake(127);
 	// grab bottom ring and middle ring
 	turnSet(-90, 100);
 	pidWait(Wait::CHAIN);
@@ -423,7 +404,7 @@ void blue_6neg() {
 	pidWait(Wait::CHAIN);
 	driveSet(24, 100, true);
 	pidWait(Wait::WAIT);
-	driveSet(-10, 127);
+	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
 	// grab mid top ring
 	turnSet(-90, 100);
@@ -504,59 +485,12 @@ void blue_7neg() {
 // BLUE POSITIVE
 //
 
-void blue_4pos() {
+void blue_goalrush() {
 	allianceColor = Colors::BLUE;
-	setPosition(62.75, 18.5, 152);
-	// score alliance and grab mogo
-	driveSet(6.5, 90);
-	setDunker(2000);
-	pidWait(Wait::WAIT);
-	delayMillis(100);
-	driveSet(-38.6, 90);
-	primeMogo();
-	pidWaitUntil(-29_in);
-	tareDunker();
-	setMogo(true);
-	setIntake(127);
-	pidWait(Wait::CHAIN);
-	// score bottom ring
-	turnSet(-100, 100);
-	pidWait(Wait::CHAIN);
-	driveSet(22, 100);
-	// score corner
-	pidWait(Wait::WAIT);
-	turnSet(180, 100);
-	pidWait(Wait::CHAIN);
-	driveSet(24, 100);
-	pidWait(Wait::QUICK);
-	turnSet(-135, 100);
-	driveSet(24, 127, true);
-	pidWait(Wait::CHAIN);
-	driveSet(-16, 127);
-	pidWait(Wait::CHAIN);
-	driveSet(24, 127, true);
-	pidWait(Wait::CHAIN);
-	driveSet(-12, 127);
-	pidWait(Wait::CHAIN);
-	// score mid top ring
-	turnSet(90, 100);
-	pidWait(Wait::CHAIN);
-	driveSet(66, 70, true);
-	pidWait(Wait::CHAIN);
-	// touch ladder or go to goal rush mogo
-	if(ladderBool) {
-		swingSet(RIGHT_SWING, 225, 127, 50);
-	} else {
-		driveSet(-12, 127);
-    pidWait(Wait::CHAIN);
-    turnSet(135, 100);
-    pidWait(Wait::CHAIN);
-    driveSet(-60, 127);
-	}
-	pidWait(Wait::WAIT);
+	
 }
 
-void blue_6pos() {
+void blue_5pos() {
 	allianceColor = Colors::BLUE;
 	setPosition(62.75, 18.5, 152);
 	// score alliance and grab mogo
