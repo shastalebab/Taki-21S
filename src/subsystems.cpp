@@ -6,7 +6,7 @@ const int dunker_down_speed = 100;
 const int dunker_up_speed = 127;
 int dunker_current_max_speed = dunker_up_speed;
 
-const vector<int> scoreStates = {10, 180};
+const vector<int> scoreStates = {10, 130};
 const vector<int> descoreStates = {1250, 1300, 1400, 1450, 1550, 1700};
 
 bool dunkerScoringState = true;
@@ -223,7 +223,7 @@ void dunkerTask() {
 			if(taretime > 10) {
 				dunker.move(0);
 				pros::delay(10);
-				dunker.set_zero_position(-60);
+				dunker.set_zero_position(-70);
 				setDunker(10);
 				taretime = 0;
 				taring = false;
