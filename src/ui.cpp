@@ -83,11 +83,14 @@ void motorTempsTask() {
 		tempIntake = intake.get_temperature();
 		tempDunker = dunker.get_temperature();
 
+		// screen update
+		/*
 		if(lv_tileview_get_tile_act(main_tv) == motorTemps) {
 			for(int i = 0; i < 8; i++) {
 				lv_event_send(motorBoxes[i], LV_EVENT_REFRESH, NULL);
 			}
 		}
+		*/
 
 		// controller update
 		if(tempDrive <= 30)

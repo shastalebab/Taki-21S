@@ -52,6 +52,7 @@ void initialize() {
 	pros::Task MogoTask(mogoTask);
 	pros::Task DunkerTask(dunkerTask);
 	pros::Task UnjamTask(unjamTask);
+	pros::Task MotorTempsTask(motorTempsTask);
 	pros::Task PathViewerTask(pathViewerTask);
 	master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
 
@@ -64,16 +65,6 @@ void disabled() {
 
 void competition_initialize() { 
 	autonMode = AutonMode::BRAIN;
-	bool checked = false;
-	while(true) {
-		if(hookSens.get_value() < 2800) checked = true;
-		if(checked == true && hookSens.get_value() > 2800) {
-			getPos();
-			checked = false;
-		}
-
-		pros::delay(util::DELAY_TIME);
-	}
  }
 
 void autonomous() {

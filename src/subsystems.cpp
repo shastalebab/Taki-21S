@@ -1,3 +1,4 @@
+#include "subsystems.hpp"
 #include "main.h"  // IWYU pragma: keep
 
 // Values to determine dunker behavior
@@ -65,13 +66,8 @@ void setDoinker(bool state) {
 	if(autonMode != AutonMode::BRAIN) doinker.set(state);
 }
 
-bool setreset = false;
-
-void getPos() {
-	setreset = !setreset;
-	if(setreset) chassis.drive_sensor_reset();
-	else cout << "Left: " << util::to_string_with_precision(chassis.drive_sensor_left()) <<
-	"\nRight: " << util::to_string_with_precision(chassis.drive_sensor_right()) << "\n";
+void setActuatedIntake(bool state) {
+	if(autonMode != AutonMode::BRAIN) actuatedIntake.set(state);
 }
 
 //

@@ -18,6 +18,7 @@ inline pros::Motor dunker(8);
 
 inline ez::Piston mogomech('A');
 inline ez::Piston doinker('C');
+inline ez::Piston actuatedIntake('D');
 
 void setIntake(int speed);
 void setIndexing();
