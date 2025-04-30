@@ -63,13 +63,13 @@ void red_solowp() {
 	setPosition(62.75, 18.5, 152);
 	// score alliance and grab mogo
 	driveSet(6.5, 90);
-	setDunker(2000);
+	setDunker(200);
 	pidWait(Wait::WAIT);
 	delayMillis(100);
 	driveSet(-38.6, 90);
 	primeMogo();
 	pidWaitUntil(-29_in);
-	tareDunker();
+	resetDunker();
 	setMogo(true);
 	setIntake(127);
 	pidWait(Wait::CHAIN);
@@ -170,13 +170,13 @@ void red_7neg() {
 	setPosition(62.75, 18.5, 152);
 	// score alliance and grab mogo
 	driveSet(6.5, 90);
-	setDunker(2000);
+	setDunker(200);
 	pidWait(Wait::WAIT);
 	delayMillis(100);
 	driveSet(-38.6, 90);
 	primeMogo();
 	pidWaitUntil(-29_in);
-	tareDunker();
+	resetDunker();
 	setMogo(true);
 	setIntake(127);
 	pidWait(Wait::CHAIN);
@@ -230,11 +230,11 @@ void red_goalrush() {
 	allianceColor = Colors::RED;
 	setPosition(105.5, 19.75, 30);
 	setIndexing();
-	setDunker(100);
+	setDunker(10);
 	setIntake(127);
 	swingSet(ez::RIGHT_SWING, 0, 127, 90, ccw);
 	pidWaitUntil(15_deg);
-	setDunker(2000);
+	setDunker(200);
 	pidWait(Wait::WAIT);
 	turnSet(60, 80);
 	pidWait(Wait::CHAIN);
@@ -260,13 +260,13 @@ void red_5pos() {
 	setPosition(81.25, 18.5, 208);
 	// score alliance and grab mogo
 	driveSet(6.5, 90);
-	setDunker(2000);
+	setDunker(200);
 	pidWait(Wait::WAIT);
 	delayMillis(100);
 	driveSet(-34, 90);
 	primeMogo();
 	pidWaitUntil(-29_in);
-	tareDunker();
+	resetDunker();
 	setMogo(true);
 	pidWait(Wait::CHAIN);
 	// grab middle rings with doinker
@@ -321,13 +321,13 @@ void blue_solowp() {
 	setPosition(81.25, 18.5, 208);
 	// score alliance and grab mogo
 	driveSet(6.5, 90);
-	setDunker(2000);
+	setDunker(200);
 	pidWait(Wait::WAIT);
 	delayMillis(100);
 	driveSet(-38.6, 90);
 	primeMogo();
 	pidWaitUntil(-29_in);
-	tareDunker();
+	resetDunker();
 	setMogo(true);
 	setIntake(127);
 	pidWait(Wait::CHAIN);
@@ -429,13 +429,13 @@ void blue_7neg() {
 	setPosition(81.25, 18.5, 208);
 	// score alliance and grab mogo
 	driveSet(6.5, 90);
-	setDunker(2000);
+	setDunker(200);
 	pidWait(Wait::WAIT);
 	delayMillis(100);
 	driveSet(-38.6, 90);
 	primeMogo();
 	pidWaitUntil(-29_in);
-	tareDunker();
+	resetDunker();
 	setMogo(true);
 	setIntake(127);
 	pidWait(Wait::CHAIN);
@@ -495,13 +495,13 @@ void blue_5pos() {
 	setPosition(62.75, 18.5, 152);
 	// score alliance and grab mogo
 	driveSet(6.5, 90);
-	setDunker(2000);
+	setDunker(200);
 	pidWait(Wait::WAIT);
 	delayMillis(100);
 	driveSet(-34, 90);
 	primeMogo();
 	pidWaitUntil(-29_in);
-	tareDunker();
+	resetDunker();
 	setMogo(true);
 	pidWait(Wait::CHAIN);
 	// grab middle rings with doinker

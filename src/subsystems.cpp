@@ -2,12 +2,12 @@
 #include "main.h"  // IWYU pragma: keep
 
 // Values to determine dunker behavior
-const int dunker_down_speed = 100;
+const int dunker_down_speed = 115;
 const int dunker_up_speed = 127;
 int dunker_current_max_speed = dunker_up_speed;
 
-const vector<int> scoreStates = {10, 130};
-const vector<int> descoreStates = {1250, 1300, 1400, 1450, 1550, 1700};
+const vector<int> scoreStates = {1, 13};
+const vector<int> descoreStates = {125, 130, 140, 145, 155, 170};
 
 bool dunkerScoringState = true;
 bool dunkerPreset = false;
@@ -23,7 +23,8 @@ int dunkerState = 0;
 bool jamState = false;
 bool ringDetected = false;
 bool discarding = false;
-bool taring = false;
+bool resetting = false;
+bool holding = false;
 bool indexing = false;
 
 //
@@ -49,11 +50,16 @@ void setDunker(int position) {
 			dunker_current_max_speed = dunker_down_speed;
 		}
 		dunkerPID.target_set(position);
+		holding = false;
 	}
 }
 
-void tareDunker() {
-	if(autonMode != AutonMode::BRAIN) taring = true;
+double getDunker() {
+	return dunkerSens.get_position() / 100.0;
+}
+
+void resetDunker() {
+	if(autonMode != AutonMode::BRAIN) resetting = true;
 }
 
 void setMogo(bool state) {
@@ -77,7 +83,7 @@ void setActuatedIntake(bool state) {
 void setIntakeOp() {
 	if(master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
 		if(!indexing) setIntake(127);
-		setDunker(320);
+		setDunker(24);
 		dunkerPreset = true;
 		usingDunkerTarget = true;
 		setIndexing();
@@ -99,13 +105,11 @@ void setDunkerOp() {
 		dunkerState %= dunkerStates.size();
 		dunkerPreset = true;
 		usingDunkerTarget = true;
-		if(dunker.get_position() > 300 && dunkerScoringState) dunkerState = 1;
+		if(getDunker() > 30 && dunkerScoringState) dunkerState = 1;
 		if(dunkerState == 0 && dunkerScoringState)
-			tareDunker();
+			resetDunker();
 		else
 			setDunker(dunkerStates[dunkerState]);
-	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
-		tareDunker();
 	} else {
 		dunkerScoringState = true;
 		if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
@@ -115,23 +119,23 @@ void setDunkerOp() {
 			setDunker(descoreStates[dunkerState]);
 		} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
 			dunker.move(127);
-			setDunker(dunker.get_position());
+			setDunker(getDunker());
 			usingDunkerTarget = false;
 			dunkerPreset = false;
 		} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
 			dunker.move(-127);
-			setDunker(dunker.get_position());
+			setDunker(getDunker());
 			usingDunkerTarget = false;
 			dunkerPreset = false;
-		} else if(!dunkerPreset and taring == false) {
+		} else if(!dunkerPreset and resetting == false) {
 			usingDunkerTarget = true;
 			dunker.move(0);
 		}
 	}
-	if(dunkerPID.target_get() > 3000)
-		setDunker(3000);
-	else if(dunkerPID.target_get() < 10)
-		setDunker(10);
+	if(dunkerPID.target_get() > 270)
+		setDunker(270);
+	else if(dunkerPID.target_get() < 0)
+		setDunker(0);
 }
 
 void setMogoOp() { mogomech.button_toggle(master.get_digital(pros::E_CONTROLLER_DIGITAL_Y)); }
@@ -178,6 +182,7 @@ bool colorCompare(Colors color) {
 
 void colorTask() {
 	Colors color;
+	ringSens.set_integration_time(10);
 	colorSens.set_integration_time(10);
 	colorSens.set_led_pwm(100);
 	while(true) {
@@ -187,8 +192,8 @@ void colorTask() {
 			if(colorCompare(color) && !discarding) {
 				discarding = true;
 			} else if(discarding) {
-				if(hookSens.get_value() < 2800 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
-				if(ringDetected && hookSens.get_value() > 2800) discard();
+				if(ringSens.get_proximity() > 235 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
+				if(ringDetected && ringSens.get_proximity() < 235) discard();
 			} else if(allianceColor == color && allianceColor != Colors::NEUTRAL && indexing) {
 				setIntake(0);
 				indexing = false;
@@ -215,21 +220,20 @@ void mogoTask() {
 }
 
 void dunkerTask() {
-	int taretime = 0;
+	int resetTime = 0;
 	while(true) {
-		if(taring) {
+		if(resetting) {
 			dunker.move(-127);
-			if(abs(dunker.get_actual_velocity()) < 5) taretime++;
-			if(taretime > 10) {
-				dunker.move(0);
-				pros::delay(10);
-				dunker.set_zero_position(-70);
-				setDunker(10);
-				taretime = 0;
-				taring = false;
+			if(abs(dunker.get_actual_velocity()) < 5) resetTime++;
+			if(resetTime > 10) {
+				resetTime = 0;
+				holding = true;
+				resetting = false;
 			}
+		} else if(holding) {
+			dunker.move(-3);
 		} else if(usingDunkerTarget) {
-			double output = dunkerPID.compute(dunker.get_position());
+			double output = dunkerPID.compute(getDunker());
 			output = ez::util::clamp(output, dunker_current_max_speed);
 			dunker.move(output);
 		}

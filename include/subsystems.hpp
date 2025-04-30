@@ -7,14 +7,15 @@ extern Drive chassis;
 
 // Your motors, sensors, etc. should go here.  Below are examples
 
-inline ez::PID dunkerPID(1.35, .04, .75, 20, "dunker");
+inline ez::PID dunkerPID(3.3, 0.0, 7.2, 0.0, "dunker");
 
 inline pros::Optical colorSens(11);
 inline pros::Distance distanceSens(12);
-inline pros::adi::LineSensor hookSens('B');
+inline pros::Optical ringSens(13);
 
 inline pros::Motor intake(7);
 inline pros::Motor dunker(8);
+inline pros::Rotation dunkerSens(14);
 
 inline ez::Piston mogomech('A');
 inline ez::Piston doinker('C');
@@ -23,7 +24,7 @@ inline ez::Piston actuatedIntake('D');
 void setIntake(int speed);
 void setIndexing();
 void setDunker(int position);
-void tareDunker();
+void resetDunker();
 void setMogo(bool state);
 void primeMogo();
 void setDoinker(bool state);

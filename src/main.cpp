@@ -83,7 +83,7 @@ void autonomous() {
 void opcontrol() {
 	chassis.drive_brake_set(pros::E_MOTOR_BRAKE_BRAKE);
 	setMogo(false);
-	tareDunker();
+	resetDunker();
 	autonMode = AutonMode::DRIVER;
 
 	while(true) {
