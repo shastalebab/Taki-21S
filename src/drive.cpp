@@ -1,8 +1,4 @@
-#include "drive.hpp"
-
-#include "EZ-Template/util.hpp"
 #include "main.h"  // IWYU pragma: keep
-#include "okapi/api/units/QLength.hpp"
 
 AutonMode autonMode = AutonMode::DRIVER;
 const double width = 11.5;
@@ -164,7 +160,7 @@ std::vector<Coordinate> smoothPath(std::vector<Coordinate> coordList, int lookAh
 void setPosition(double x, double y) {
 	currentPoint.x = x;
 	currentPoint.y = y;
-	chassis.odom_xy_set(currentPoint.x, currentPoint.y);
+	if(autonMode != AutonMode::BRAIN) chassis.odom_xy_set(currentPoint.x, currentPoint.y);
 	currentPoint.movement = MovementType::TURN;
 	autonPath.push_back(currentPoint);
 }
@@ -173,7 +169,7 @@ void setPosition(double x, double y, double t) {
 	currentPoint.x = x;
 	currentPoint.y = y;
 	currentPoint.t = t;
-	chassis.odom_xyt_set(currentPoint.x, currentPoint.y, t);
+	if(autonMode != AutonMode::BRAIN)  chassis.odom_xyt_set(currentPoint.x, currentPoint.y, t);
 	currentPoint.movement = MovementType::TURN;
 	autonPath.push_back(currentPoint);
 }

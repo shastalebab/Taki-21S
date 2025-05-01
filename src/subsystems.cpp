@@ -1,4 +1,3 @@
-#include "subsystems.hpp"
 #include "main.h"  // IWYU pragma: keep
 
 // Values to determine dunker behavior
@@ -148,7 +147,7 @@ void setDoinkerOp() { setDoinker(master.get_digital(pros::E_CONTROLLER_DIGITAL_U
 
 void discard() {
 	intake.move(-127);
-	pros::delay(80);
+	pros::delay(70);
 	setIntake(intakeTarget);
 	discarding = false;
 	ringDetected = false;
@@ -189,11 +188,12 @@ void colorTask() {
 		color = colorGet();
 		colorSet(color);
 		if(!jamState && !pros::competition::is_disabled()) {
+			cout << ringSens.get_proximity() << "\n";
 			if(colorCompare(color) && !discarding) {
 				discarding = true;
 			} else if(discarding) {
-				if(ringSens.get_proximity() > 235 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
-				if(ringDetected && ringSens.get_proximity() < 235) discard();
+				if(ringSens.get_proximity() == 255 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
+				if(ringDetected && ringSens.get_proximity() < 130) discard();
 			} else if(allianceColor == color && allianceColor != Colors::NEUTRAL && indexing) {
 				setIntake(0);
 				indexing = false;

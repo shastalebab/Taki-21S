@@ -1,7 +1,4 @@
 #include "main.h"
-#include "EZ-Template/util.hpp"
-#include "pros/misc.h"
-#include "subsystems.hpp"
 
 // Chassis constructor
 ez::Drive chassis(
@@ -52,8 +49,9 @@ void initialize() {
 	pros::Task MogoTask(mogoTask);
 	pros::Task DunkerTask(dunkerTask);
 	pros::Task UnjamTask(unjamTask);
-	pros::Task MotorTempsTask(motorTempsTask);
+	pros::Task ControllerTask(controllerTask);
 	pros::Task PathViewerTask(pathViewerTask);
+	pros::Task AngleCheckTask(angleCheckTask);
 	master.rumble(chassis.drive_imu_calibrated() ? "." : "---");
 
 	dunker.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);

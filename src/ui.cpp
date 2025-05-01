@@ -1,10 +1,3 @@
-#include "liblvgl/core/lv_obj.h"
-#include "liblvgl/core/lv_obj_scroll.h"
-#include "liblvgl/core/lv_obj_style.h"
-#include "liblvgl/core/lv_obj_tree.h"
-#include "liblvgl/extra/widgets/list/lv_list.h"
-#include "liblvgl/font/lv_font.h"
-#include "liblvgl/widgets/lv_label.h"
 #include "main.h"  // IWYU pragma: keep
 
 // // // // // // Tasks & Non-UI // // // // // //
@@ -31,6 +24,8 @@ lv_obj_t* autonDelay = lv_obj_create(autoSelector);
 lv_obj_t* autonLadder = lv_obj_create(autoSelector);
 lv_obj_t* autonField = lv_img_create(autoSelector);
 lv_obj_t* autonRobot = lv_img_create(autonField);
+lv_obj_t* angleViewer;
+lv_obj_t* angleText;
 
 lv_obj_t* motorBoxes[8] = {lv_label_create(motorTemps), lv_label_create(motorTemps), lv_label_create(motorTemps), lv_label_create(motorTemps),
 						   lv_label_create(motorTemps), lv_label_create(motorTemps), lv_label_create(motorTemps), lv_label_create(motorTemps)};
@@ -62,37 +57,58 @@ LV_IMG_DECLARE(robot);
 
 bool delayBool = false;
 bool ladderBool = true;
+bool aligning = false;
 
 AutonSel auton_sel;
 
 void AutonSel::selector_populate(vector<AutonObj> auton_list) { autons.insert(autons.end(), auton_list.begin(), auton_list.end()); }
 
+void angleCheckTask() {
+	while(true) {
+		if(aligning) {
+			auto target = autonPath.size() > 0 ? autonPath[0].t : 0;
+			lv_label_set_text(angleText, (util::to_string_with_precision(chassis.drive_imu_get(), 2) + " °" + "\ntarget: " + util::to_string_with_precision(target, 2)).c_str());
+			if(target + 0.15 >= chassis.drive_imu_get() && target - 0.15 <= chassis.drive_imu_get()) 
+				lv_obj_set_style_bg_color(angleViewer, green, LV_PART_MAIN);
+			else lv_obj_set_style_bg_color(angleViewer, red, LV_PART_MAIN);
+		}
+	pros::delay(10);
+	}
+}
+
 //
-// Motor Temperatures
+// Controller Updates
 //
 
-void motorTempsTask() {
+void controllerTask() {
+	string pattern = "";
+	int timer = 0;
+	float tempDrive;
+	float tempIntake;
+	float tempDunker;
 	while(true) {
-		float tempDrive;
-		float tempIntake;
-		float tempDunker;
-		// temperature variables
+		// Update timer and rumble controller
+		if(!pros::competition::is_autonomous() && !pros::competition::is_disabled()) {
+			if(timer == 475) 
+				pattern = "-";
+			else if(timer == 375)
+				pattern = "--";
+			else if((timer >= 350 && timer < 375) || (timer >= 500 && timer < 525))
+				pattern = ".";
+			else
+				pattern = "";
+			if(timer % 5 == 0) master.rumble(pattern.c_str());
+			timer++;
+		}
+		pros::delay(50);
+
+		// Update temperature variables and print to controller
 		tempDrive = (chassis.left_motors[0].get_temperature() + chassis.left_motors[1].get_temperature() + chassis.left_motors[2].get_temperature() +
 					 chassis.right_motors[0].get_temperature() + chassis.right_motors[1].get_temperature() + chassis.right_motors[2].get_temperature()) /
 					6;
 		tempIntake = intake.get_temperature();
 		tempDunker = dunker.get_temperature();
 
-		// screen update
-		/*
-		if(lv_tileview_get_tile_act(main_tv) == motorTemps) {
-			for(int i = 0; i < 8; i++) {
-				lv_event_send(motorBoxes[i], LV_EVENT_REFRESH, NULL);
-			}
-		}
-		*/
-
-		// controller update
 		if(tempDrive <= 30)
 			pros::c::controller_print(pros::E_CONTROLLER_MASTER, 0, 0, "drive: cool, %.0f°C", tempDrive);
 		else if(tempDrive > 30 && tempDrive <= 50)
@@ -243,11 +259,33 @@ static void ladderEvent(lv_event_t* e) {
 	resetViewer(true);
 }
 
+static void angleCheckCloseEvent(lv_event_t *e) {
+	aligning = false;
+}
+
+lv_event_cb_t AngleCheckCloseEvent = angleCheckCloseEvent;
+
+static void angleCheckEvent(lv_event_t* e) {
+	angleViewer = lv_msgbox_create(NULL, "check alignment", "0°", NULL, true);
+	angleText = lv_msgbox_get_text(angleViewer);
+	aligning = true;
+
+	lv_obj_add_event_cb(lv_msgbox_get_close_btn(angleViewer), AngleCheckCloseEvent, LV_EVENT_PRESSED, NULL);
+	lv_obj_add_style(lv_msgbox_get_close_btn(angleViewer), &taki, LV_PART_MAIN);
+	lv_obj_add_style(angleViewer, &taki, LV_PART_MAIN);
+	lv_obj_set_style_text_font(angleViewer, &lv_font_montserrat_48, LV_PART_MAIN);
+	lv_obj_set_style_text_font(lv_msgbox_get_title(angleViewer), &lv_font_montserrat_14, LV_PART_MAIN);
+	lv_obj_set_style_text_font(lv_msgbox_get_close_btn(angleViewer), &lv_font_montserrat_24, LV_PART_MAIN);
+	lv_obj_set_width(angleViewer, 300);
+	lv_obj_align(angleViewer, LV_ALIGN_CENTER, 0, 0);
+}
+
 lv_event_cb_t SelectAuton = selectAuton;
 lv_event_cb_t AutonUpEvent = autonUpEvent;
 lv_event_cb_t AutonDownEvent = autonDownEvent;
 lv_event_cb_t DelayEvent = delayEvent;
 lv_event_cb_t LadderEvent = ladderEvent;
+lv_event_cb_t AngleCheckEvent = angleCheckEvent;
 
 void autoSelectorInit() {
 	// Add base styles
@@ -276,6 +314,7 @@ void autoSelectorInit() {
 	lv_obj_add_flag(autonDown, LV_OBJ_FLAG_CLICKABLE);
 	lv_obj_add_flag(autonDelay, LV_OBJ_FLAG_CLICKABLE);
 	lv_obj_add_flag(autonLadder, LV_OBJ_FLAG_CLICKABLE);
+	lv_obj_add_flag(autonField, LV_OBJ_FLAG_CLICKABLE);
 	lv_obj_add_flag(autonRobot, LV_OBJ_FLAG_HIDDEN);
 
 	// Set sizes of objects
@@ -311,6 +350,7 @@ void autoSelectorInit() {
 	lv_obj_set_style_bg_opa(autonLadder, 255, LV_PART_MAIN);
 
 	lv_obj_set_style_outline_width(autonTable, 1, LV_PART_ITEMS);
+	lv_obj_set_style_outline_width(autonField, 5, LV_STATE_PRESSED);
 	lv_obj_set_style_outline_width(autonRobot, 0, LV_PART_MAIN);
 	lv_obj_set_style_outline_width(autonDelay, 0, LV_PART_MAIN);
 	lv_obj_set_style_outline_width(autonLadder, 0, LV_PART_MAIN);
@@ -332,6 +372,7 @@ void autoSelectorInit() {
 	lv_obj_add_event_cb(autonDown, AutonDownEvent, LV_EVENT_CLICKED, NULL);
 	lv_obj_add_event_cb(autonDelay, DelayEvent, LV_EVENT_CLICKED, NULL);
 	lv_obj_add_event_cb(autonLadder, LadderEvent, LV_EVENT_CLICKED, NULL);
+	lv_obj_add_event_cb(autonField, AngleCheckEvent, LV_EVENT_CLICKED, NULL);
 
 	// Set up list
 	for(int i = 0; i < auton_sel.autons.size(); i++) {

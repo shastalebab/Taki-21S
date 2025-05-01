@@ -8,9 +8,12 @@ const lv_color32_t theme_color = lv_color_hex(0x00060a);
 const lv_color32_t theme_accent = lv_color_hex(0xe3f4ff);
 const lv_color32_t red = lv_color_hex(0xaa2f17);
 const lv_color32_t blue = lv_color_hex(0x1744aa);
+const lv_color32_t green = lv_color_hex(0x22d428);
 const lv_color32_t gray = lv_color_hex(0x575757);
 
 // Auton selector
+void angleCheckTask();
+
 class AutonObj {
     public:
         function<void()> callback = red_testauto;
@@ -31,7 +34,10 @@ extern bool delayBool;
 extern bool ladderBool;
 
 // Motor Temperatures
-void motorTempsTask();
+void controllerTask();
+
+// Timer
+void timerTask();
 
 // Path Planning
 void pathViewerTask();

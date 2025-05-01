@@ -7,7 +7,7 @@ extern Drive chassis;
 
 // Your motors, sensors, etc. should go here.  Below are examples
 
-inline ez::PID dunkerPID(3.3, 0.0, 7.2, 0.0, "dunker");
+inline ez::PID dunkerPID(2.6, 0.0, 0.8, 0.0, "dunker");
 
 inline pros::Optical colorSens(11);
 inline pros::Distance distanceSens(12);

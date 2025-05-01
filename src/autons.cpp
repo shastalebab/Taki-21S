@@ -1,10 +1,4 @@
-#include "autons.hpp"
-
-#include "EZ-Template/drive/drive.hpp"
-#include "EZ-Template/util.hpp"
-#include "drive.hpp"
 #include "main.h"  // IWYU pragma: keep
-#include "subsystems.hpp"
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -24,7 +18,7 @@ void default_constants() {
 	chassis.pid_drive_constants_set(20.0, 0.0, 100.0);		   // Fwd/rev constants, used for odom and non odom motions
 	chassis.pid_heading_constants_set(11.0, 0.0, 25.0);		   // Holds the robot straight while going forward without odom
 	chassis.pid_turn_constants_set(3.25, 0.05, 25.0, 15.0);	   // Turn in place constants
-	chassis.pid_swing_constants_set(10.1, 0.0, 16.0);		   // Swing constants
+	chassis.pid_swing_constants_set(6.0, 0.0, 65.0);		   // Swing constants
 	chassis.pid_odom_angular_constants_set(6.5, 0.0, 52.5);	   // Angular control for odom motions
 	chassis.pid_odom_boomerang_constants_set(5.8, 0.0, 32.5);  // Angular control for boomerang motions
 
@@ -117,6 +111,7 @@ void red_solowp() {
 void red_6neg() {
 	allianceColor = Colors::RED;
 	setPosition(62.75, 18.5, 152);
+	resetDunker();
 	// grab mogo
 	driveSet(-32, 90);
 	primeMogo();
@@ -227,6 +222,7 @@ void red_7neg() {
 //
 
 void red_goalrush() {
+	chassis.pid_swing_constants_set(10.1, 0.0, 16.0);
 	allianceColor = Colors::RED;
 	setPosition(105.5, 19.75, 30);
 	setIndexing();
@@ -375,6 +371,7 @@ void blue_solowp() {
 void blue_6neg() {
 	allianceColor = Colors::BLUE;
 	setPosition(81.25, 18.5, 208);
+	resetDunker();
 	// grab mogo
 	driveSet(-32, 90);
 	primeMogo();
@@ -570,12 +567,14 @@ void testexitconditions() {
 
 void red_testauto() {
 	allianceColor = Colors::RED;
+	resetDunker();
 	setIntake(127);
 	primeMogo();
 }
 
 void blue_testauto() {
 	allianceColor = Colors::BLUE;
+	resetDunker();
 	setIntake(127);
 	primeMogo();
 }
