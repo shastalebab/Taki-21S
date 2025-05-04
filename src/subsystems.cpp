@@ -1,12 +1,16 @@
+#include "subsystems.hpp"
+
 #include "main.h"  // IWYU pragma: keep
+#include "pros/misc.h"
+
 
 // Values to determine dunker behavior
 const int dunker_down_speed = 115;
 const int dunker_up_speed = 127;
 int dunker_current_max_speed = dunker_up_speed;
 
-const vector<int> scoreStates = {1, 13};
-const vector<int> descoreStates = {125, 130, 140, 145, 155, 170};
+const vector<int> scoreStates = {1, 12};
+const vector<int> descoreStates = {159, 171, 181, 194, 205, 217};
 
 bool dunkerScoringState = true;
 bool dunkerPreset = false;
@@ -14,6 +18,7 @@ bool usingDunkerTarget = true;
 
 // Internal targets to aid tasks
 Colors allianceColor = Colors::NEUTRAL;
+Colors matchColor = allianceColor;
 bool mogoState = false;
 int intakeTarget = 0;
 int dunkerState = 0;
@@ -21,6 +26,7 @@ int dunkerState = 0;
 // Internal states to avoid tasks clashing
 bool jamState = false;
 bool ringDetected = false;
+bool jamDisabled = false;
 bool discarding = false;
 bool resetting = false;
 bool holding = false;
@@ -37,9 +43,7 @@ void setIntake(int speed) {
 	}
 }
 
-void setIndexing() {
-	indexing = true;
-}
+void setIndexing() { indexing = true; }
 
 void setDunker(int position) {
 	if(autonMode != AutonMode::BRAIN) {
@@ -53,9 +57,15 @@ void setDunker(int position) {
 	}
 }
 
-double getDunker() {
-	return dunkerSens.get_position() / 100.0;
+void setDunker(int position, int max_speed) {
+	if(autonMode != AutonMode::BRAIN) {
+		dunker_current_max_speed = max_speed;
+		dunkerPID.target_set(position);
+		holding = false;
+	}
 }
+
+double getDunker() { return dunkerSens.get_position() / 100.0; }
 
 void resetDunker() {
 	if(autonMode != AutonMode::BRAIN) resetting = true;
@@ -72,27 +82,42 @@ void setDoinker(bool state) {
 }
 
 void setActuatedIntake(bool state) {
-	if(autonMode != AutonMode::BRAIN) actuatedIntake.set(state);
+	if(autonMode != AutonMode::BRAIN) {
+		actuatedIntake.set(state);
+		antiJamDisabled(state);
+	}
 }
+
+void antiJamDisabled(bool state) {
+	jamDisabled = state;
+}
+
+void sendHaptic(string input) { controllerInput = input; }
 
 //
 // Operator Control
 //
 
 void setIntakeOp() {
-	if(master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
-		if(!indexing) setIntake(127);
-		setDunker(24);
-		dunkerPreset = true;
-		usingDunkerTarget = true;
-		setIndexing();
-	} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
-		setIntake(127);
-	else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
-		setIntake(-127);
-	else {
-		setIntake(0);
-		indexing = false;
+	if(!discarding && !jamState) {
+		if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A)) {
+			colorToggle();
+			sendHaptic(".");
+			pros::delay(50);
+		} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_X)) {
+			if(!indexing) setIntake(90);
+			setDunker(25);
+			dunkerPreset = true;
+			usingDunkerTarget = true;
+			setIndexing();
+		} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+			setIntake(127);
+		else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+			setIntake(-127);
+		else {
+			setIntake(0);
+			indexing = false;
+		}
 	}
 }
 
@@ -109,6 +134,8 @@ void setDunkerOp() {
 			resetDunker();
 		else
 			setDunker(dunkerStates[dunkerState]);
+	} else if(master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)) {
+		resetDunker();
 	} else {
 		dunkerScoringState = true;
 		if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) && master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
@@ -134,7 +161,7 @@ void setDunkerOp() {
 	if(dunkerPID.target_get() > 270)
 		setDunker(270);
 	else if(dunkerPID.target_get() < 0)
-		setDunker(0);
+		resetDunker();
 }
 
 void setMogoOp() { mogomech.button_toggle(master.get_digital(pros::E_CONTROLLER_DIGITAL_Y)); }
@@ -144,6 +171,13 @@ void setDoinkerOp() { setDoinker(master.get_digital(pros::E_CONTROLLER_DIGITAL_U
 //
 // Color sort
 //
+
+void colorToggle() {
+	if(allianceColor == matchColor)
+		allianceColor = Colors::NEUTRAL;
+	else
+		allianceColor = matchColor;
+}
 
 void discard() {
 	intake.move(-127);
@@ -164,11 +198,12 @@ void colorSet(Colors color) {
 }
 
 Colors colorGet() {
-	auto hue = colorSens.get_hue();
-	if(colorSens.get_proximity() > 100) {
-		if((hue > 340 && hue < 360) || (hue > 0 && hue < 15))
+	double hue = 0;
+	if(ringSens.get_proximity() > 100) {
+		hue = colorSens.get_hue();
+		if((hue > 340 && hue < 360) || (hue > 0 && hue < 20))
 			return Colors::RED;
-		else if(hue > 200 && hue < 225)
+		else if(hue > 210 && hue < 240)
 			return Colors::BLUE;
 	}
 	return Colors::NEUTRAL;
@@ -181,22 +216,31 @@ bool colorCompare(Colors color) {
 
 void colorTask() {
 	Colors color;
-	ringSens.set_integration_time(10);
+	int sortTime = 0;
 	colorSens.set_integration_time(10);
+	ringSens.set_integration_time(10);
 	colorSens.set_led_pwm(100);
 	while(true) {
 		color = colorGet();
 		colorSet(color);
 		if(!jamState && !pros::competition::is_disabled()) {
-			cout << ringSens.get_proximity() << "\n";
 			if(colorCompare(color) && !discarding) {
 				discarding = true;
 			} else if(discarding) {
-				if(ringSens.get_proximity() == 255 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
-				if(ringDetected && ringSens.get_proximity() < 130) discard();
-			} else if(allianceColor == color && allianceColor != Colors::NEUTRAL && indexing) {
-				setIntake(0);
-				indexing = false;
+				sortTime++;
+				if(ringSens.get_proximity() > 220 && util::sgn(intake.get_actual_velocity()) == 1) ringDetected = true;
+				if(ringDetected && ringSens.get_proximity() < 130) {
+					discard();
+					sortTime = 0;
+				} else if(sortTime > 50) {
+					discarding = false;
+					sortTime = 0;
+				}
+			} else if(indexing) {
+				if((matchColor == color) && matchColor != Colors::NEUTRAL) {
+					setIntake(0);
+					indexing = false;
+				}
 			}
 		}
 		pros::delay(10);
@@ -245,8 +289,8 @@ void unjamTask() {
 	int jamtime = 0;
 	while(true) {
 		if(intake.get_temperature() < 50) {
-			if(dunkerState != 1 && dunkerScoringState == true) {
-				if(!jamState && intakeTarget != 0 && abs(intake.get_actual_velocity()) <= 20) {
+			if(dunkerState != 1 || !dunkerScoringState) {
+				if(!jamState && !jamDisabled && intakeTarget != 0 && abs(intake.get_actual_velocity()) <= 20) {
 					jamtime++;
 					if(jamtime > 20) {
 						jamtime = 0;

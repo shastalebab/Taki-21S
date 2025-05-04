@@ -1,4 +1,5 @@
 #include "main.h"
+#include "subsystems.hpp"
 
 // Chassis constructor
 ez::Drive chassis(
@@ -75,14 +76,15 @@ void autonomous() {
 	autonMode = AutonMode::PLAIN;
 	autonPath = {};
 	if(delayBool) delayMillis(1000);
+	antiJamDisabled(false);
 	auton_sel.selector_callback();	// Calls selected auton from autonomous selector
+	matchColor = allianceColor;
 }
 
 void opcontrol() {
 	chassis.drive_brake_set(pros::E_MOTOR_BRAKE_BRAKE);
-	setMogo(false);
-	resetDunker();
 	autonMode = AutonMode::DRIVER;
+	setActuatedIntake(false);
 
 	while(true) {
 		chassis.opcontrol_tank();  // Tank control

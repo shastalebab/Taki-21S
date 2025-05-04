@@ -29,6 +29,7 @@ class AutonSel {
         void selector_populate(vector<AutonObj> auton_list);
 };
 
+extern string controllerInput;
 extern AutonSel auton_sel;
 extern bool delayBool;
 extern bool ladderBool;

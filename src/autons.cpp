@@ -1,4 +1,6 @@
+#include "drive.hpp"
 #include "main.h"  // IWYU pragma: keep
+#include "subsystems.hpp"
 
 /////
 // For installation, upgrading, documentations, and tutorials, check out our website!
@@ -137,15 +139,19 @@ void red_6neg() {
 	// score corner
 	driveSet(24, 100, true);
 	pidWait(Wait::CHAIN);
-	driveSet(-16, 127);
+	driveSet(-16, 80);
 	pidWait(Wait::CHAIN);
+	setActuatedIntake(true);
 	driveSet(24, 100, true);
 	pidWait(Wait::WAIT);
-	driveSet(-16, 127);
+	setActuatedIntake(false);
+	driveSet(-16, 80);
 	// grab mid top ring
 	turnSet(90, 100);
 	pidWait(Wait::CHAIN);
-	driveSet(66, 70, true);
+	driveSet(50, 70, true);
+	delayMillis(200);
+	setActuatedIntake(true);
 	pidWait(Wait::CHAIN);
 	// touch ladder or go to positive corner
 	if(ladderBool) {
@@ -164,49 +170,63 @@ void red_7neg() {
 	allianceColor = Colors::RED;
 	setPosition(62.75, 18.5, 152);
 	// score alliance and grab mogo
-	driveSet(6.5, 90);
+	driveSet(7, 90);
 	setDunker(200);
 	pidWait(Wait::WAIT);
 	delayMillis(100);
-	driveSet(-38.6, 90);
+	driveSet(-39.1, 90);
 	primeMogo();
-	pidWaitUntil(-29_in);
+	pidWaitUntil(-29.5_in);
 	resetDunker();
 	setMogo(true);
 	setIntake(127);
 	pidWait(Wait::CHAIN);
 	// sweep ring rush rings
-	moveToPoint({35, 56}, fwd, 70);
+	moveToPoint({35, 57}, fwd, 70);
 	pidWait(Wait::CHAIN);
-	moveToPoint({14, 58}, fwd, 70);
+	moveToPoint({14, 59}, fwd, 70);
 	pidWait(Wait::WAIT);
 	delayMillis(100);
-	swingSet(RIGHT_SWING, -70, 127, 90, cw);
+	swingSet(RIGHT_SWING, -65, 127, 60, cw);
 	pidWait(Wait::CHAIN);
 	// grab bottom ring of ring stack, then score corner
-	moveToPoint({31, 48}, fwd, 100);
+	moveToPoint({28, 48}, fwd, 100);
 	pidWait(Wait::CHAIN);
-	moveToPoint({31, 28}, fwd, 100);
+	moveToPoint({28, 28}, fwd, 100);
 	pidWait(Wait::CHAIN);
 	turnSet(225, 127);
+	setDunker(256);
 	pidWait(Wait::CHAIN);
 	// score corner
-	driveSet(24, 100, true);
-	pidWait(Wait::CHAIN);
-	driveSet(-16, 127);
-	pidWait(Wait::CHAIN);
-	driveSet(24, 100, true);
+	driveSet(28, 70, true);
 	pidWait(Wait::WAIT);
-	driveSet(-10, 127);
+	driveSet(-12, 30);
+	setDunker(0, 50);
 	pidWait(Wait::CHAIN);
 	// grab mid top ring
-	turnSet(90, 100);
+	turnSet(90, 60);
 	pidWait(Wait::CHAIN);
-	driveSet(66, 70, true);
-	pidWait(Wait::CHAIN);
+	driveSet(58, 80, true);
+	delayMillis(200);
+	setIntake(0);
+	setActuatedIntake(true);
+	delayMillis(600);
+	setIntake(127);
+	pidWaitUntil(50_in);
+	resetDunker();
+	setActuatedIntake(false);
+	antiJamDisabled(true);
+	pidWait(Wait::WAIT);
+	delayMillis(200);
 	// touch ladder or go to positive corner
 	if(ladderBool) {
-		swingSet(RIGHT_SWING, 225, 127, 60);
+		driveSet(-16, 60);
+		pidWait(Wait::CHAIN);
+		turnSet(45, 90);
+		pidWait(Wait::CHAIN);
+		driveSet(20, 127);
+		pidWait(Wait::WAIT);
+		setDoinker(true);
 	} else {
 		driveSet(48, 127);
 		pidWait(Wait::CHAIN);
@@ -300,10 +320,10 @@ void red_5pos() {
 		swingSet(LEFT_SWING, 135, 127, 50, ccw);
 	} else {
 		driveSet(-12, 127);
-    pidWait(Wait::CHAIN);
-    turnSet(225, 100);
-    pidWait(Wait::CHAIN);
-    driveSet(-60, 127);
+		pidWait(Wait::CHAIN);
+		turnSet(225, 100);
+		pidWait(Wait::CHAIN);
+		driveSet(-60, 127);
 	}
 	pidWait(Wait::WAIT);
 }
@@ -453,7 +473,7 @@ void blue_7neg() {
 	pidWait(Wait::CHAIN);
 	// score corner
 	driveSet(24, 100, true);
-	pidWait(Wait::CHAIN);
+	delayMillis(1200);
 	driveSet(-16, 127);
 	pidWait(Wait::CHAIN);
 	driveSet(24, 100, true);
@@ -482,10 +502,7 @@ void blue_7neg() {
 // BLUE POSITIVE
 //
 
-void blue_goalrush() {
-	allianceColor = Colors::BLUE;
-	
-}
+void blue_goalrush() { allianceColor = Colors::BLUE; }
 
 void blue_5pos() {
 	allianceColor = Colors::BLUE;
@@ -535,10 +552,10 @@ void blue_5pos() {
 		swingSet(RIGHT_SWING, 225, 127, 50);
 	} else {
 		driveSet(-12, 127);
-    pidWait(Wait::CHAIN);
-    turnSet(135, 100);
-    pidWait(Wait::CHAIN);
-    driveSet(-60, 127);
+		pidWait(Wait::CHAIN);
+		turnSet(135, 100);
+		pidWait(Wait::CHAIN);
+		driveSet(-60, 127);
 	}
 	pidWait(Wait::WAIT);
 }
@@ -553,21 +570,17 @@ void move_forward() {
 }
 
 void testexitconditions() {
-  driveSet(-24, 80, true);
-  primeMogo();
-  pidWait(Wait::WAIT);
-  setIntake(127);
-  turnSet(90, 100);
-  pidWait(Wait::WAIT);
-  driveSet(24, 127);
-  //pidWait(Wait::WAIT);
-  //driveSet(-36, 127);
-  //pidWait(Wait::WAIT);
+	allianceColor = Colors::RED;
+	resetDunker();
+	setIntake(127);
+	primeMogo();
+	driveSet(24, 60);
 }
 
 void red_testauto() {
 	allianceColor = Colors::RED;
 	resetDunker();
+	setActuatedIntake(true);
 	setIntake(127);
 	primeMogo();
 }

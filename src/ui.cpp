@@ -55,6 +55,7 @@ LV_IMG_DECLARE(robot);
 // Auton Selector
 //
 
+string controllerInput = "";
 bool delayBool = false;
 bool ladderBool = true;
 bool aligning = false;
@@ -67,12 +68,15 @@ void angleCheckTask() {
 	while(true) {
 		if(aligning) {
 			auto target = autonPath.size() > 0 ? autonPath[0].t : 0;
-			lv_label_set_text(angleText, (util::to_string_with_precision(chassis.drive_imu_get(), 2) + " °" + "\ntarget: " + util::to_string_with_precision(target, 2)).c_str());
-			if(target + 0.15 >= chassis.drive_imu_get() && target - 0.15 <= chassis.drive_imu_get()) 
+			lv_label_set_text(
+				angleText,
+				(util::to_string_with_precision(chassis.drive_imu_get(), 2) + " °" + "\ntarget: " + util::to_string_with_precision(target, 2)).c_str());
+			if(target + 0.15 >= chassis.drive_imu_get() && target - 0.15 <= chassis.drive_imu_get())
 				lv_obj_set_style_bg_color(angleViewer, green, LV_PART_MAIN);
-			else lv_obj_set_style_bg_color(angleViewer, red, LV_PART_MAIN);
+			else
+				lv_obj_set_style_bg_color(angleViewer, red, LV_PART_MAIN);
 		}
-	pros::delay(10);
+		pros::delay(10);
 	}
 }
 
@@ -89,15 +93,21 @@ void controllerTask() {
 	while(true) {
 		// Update timer and rumble controller
 		if(!pros::competition::is_autonomous() && !pros::competition::is_disabled()) {
-			if(timer == 475) 
-				pattern = "-";
-			else if(timer == 375)
-				pattern = "--";
-			else if((timer >= 350 && timer < 375) || (timer >= 500 && timer < 525))
-				pattern = ".";
-			else
+			if(pattern == "") {
+				if(timer == 475)
+					pattern = "-";
+				else if(timer == 375)
+					pattern = "--";
+				else if((timer >= 350 && timer < 375) || (timer >= 500 && timer < 525))
+					pattern = ".";
+				else
+					pattern = controllerInput;
+			}
+			if(timer % 5 == 0 || controllerInput != "" ) {
+				master.rumble(pattern.c_str());
+				controllerInput = "";
 				pattern = "";
-			if(timer % 5 == 0) master.rumble(pattern.c_str());
+			}
 			timer++;
 		}
 		pros::delay(50);
@@ -259,9 +269,7 @@ static void ladderEvent(lv_event_t* e) {
 	resetViewer(true);
 }
 
-static void angleCheckCloseEvent(lv_event_t *e) {
-	aligning = false;
-}
+static void angleCheckCloseEvent(lv_event_t* e) { aligning = false; }
 
 lv_event_cb_t AngleCheckCloseEvent = angleCheckCloseEvent;
 

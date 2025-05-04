@@ -24,11 +24,16 @@ inline ez::Piston actuatedIntake('D');
 void setIntake(int speed);
 void setIndexing();
 void setDunker(int position);
+void setDunker(int position, int max_speed);
 void resetDunker();
 void setMogo(bool state);
 void primeMogo();
 void setDoinker(bool state);
 void getPos();
+void setActuatedIntake(bool state);
+void antiJamDisabled(bool state);
+void sendHaptic(string input);
+void colorToggle();
 
 void setIntakeOp();
 void setDunkerOp();
@@ -52,3 +57,4 @@ enum class AutoMogo {
 };
 
 extern Colors allianceColor;
+extern Colors matchColor;
