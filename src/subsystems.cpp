@@ -1,7 +1,4 @@
-#include "subsystems.hpp"
-
 #include "main.h"  // IWYU pragma: keep
-#include "pros/misc.h"
 
 
 // Values to determine dunker behavior
@@ -92,6 +89,10 @@ void antiJamDisabled(bool state) {
 	jamDisabled = state;
 }
 
+void setAlliance(Colors alliance) {
+	allianceColor = alliance;
+	matchColor = alliance;
+}
 void sendHaptic(string input) { controllerInput = input; }
 
 //

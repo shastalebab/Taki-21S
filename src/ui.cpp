@@ -68,10 +68,12 @@ void angleCheckTask() {
 	while(true) {
 		if(aligning) {
 			auto target = autonPath.size() > 0 ? autonPath[0].t : 0;
+			auto current = fmod(chassis.drive_imu_get(), 360);
+			if(current < 0) current += 360;
 			lv_label_set_text(
 				angleText,
-				(util::to_string_with_precision(chassis.drive_imu_get(), 2) + " °" + "\ntarget: " + util::to_string_with_precision(target, 2)).c_str());
-			if(target + 0.15 >= chassis.drive_imu_get() && target - 0.15 <= chassis.drive_imu_get())
+				(util::to_string_with_precision(current, 2) + " °" + "\ntarget: " + util::to_string_with_precision(target, 2)).c_str());
+			if(target + 0.15 >= current && target - 0.15 <= current)
 				lv_obj_set_style_bg_color(angleViewer, green, LV_PART_MAIN);
 			else
 				lv_obj_set_style_bg_color(angleViewer, red, LV_PART_MAIN);

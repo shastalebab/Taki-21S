@@ -365,6 +365,20 @@ void turnSet(double theta, int speed) {
 	autonPath.push_back(currentPoint);
 }
 
+void turnSet(double theta, int speed, e_angle_behavior behavior) {
+	switch(autonMode) {
+		case AutonMode::PLAIN:
+		case AutonMode::ODOM:
+			chassis.pid_turn_set(theta * okapi::degree, speed, behavior);
+			break;
+		default:
+			break;
+	}
+	currentPoint.movement = MovementType::TURN;
+	currentPoint.t = theta;
+	autonPath.push_back(currentPoint);
+}
+
 void turnSet(Coordinate point, drive_directions direction, int speed) {
 	double theta = getTheta(currentPoint, point, direction);
 	switch(autonMode) {
@@ -380,12 +394,43 @@ void turnSet(Coordinate point, drive_directions direction, int speed) {
 	autonPath.push_back(currentPoint);
 }
 
+void turnSet(Coordinate point, drive_directions direction, int speed, e_angle_behavior behavior) {
+	double theta = getTheta(currentPoint, point, direction);
+	switch(autonMode) {
+		case AutonMode::PLAIN:
+		case AutonMode::ODOM:
+			chassis.pid_turn_set(theta * okapi::degree, speed, behavior);
+			break;
+		default:
+			break;
+	}
+	currentPoint.movement = MovementType::TURN;
+	currentPoint.t = theta;
+	autonPath.push_back(currentPoint);
+}
+
 void turnSetRelative(double theta, int speed) {
 	switch(autonMode) {
 		case AutonMode::PLAIN:
 		case AutonMode::ODOM:
 			theta += chassis.odom_theta_get();
 			chassis.pid_turn_set((theta)*okapi::degree, speed);
+			break;
+		default:
+			theta += currentPoint.t;
+			break;
+	}
+	currentPoint.movement = MovementType::TURN;
+	currentPoint.t = theta;
+	autonPath.push_back(currentPoint);
+}
+
+void turnSetRelative(double theta, int speed, e_angle_behavior behavior) {
+	switch(autonMode) {
+		case AutonMode::PLAIN:
+		case AutonMode::ODOM:
+			theta += chassis.odom_theta_get();
+			chassis.pid_turn_set((theta)*okapi::degree, speed, behavior);
 			break;
 		default:
 			theta += currentPoint.t;

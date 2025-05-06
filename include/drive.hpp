@@ -71,8 +71,11 @@ void driveSet(double distance, int speed);
 
 // Turn set wrappers
 void turnSet(double theta, int speed);
+void turnSet(double theta, int speed, e_angle_behavior behavior);
 void turnSet(Coordinate point, drive_directions direction, int speed);
+void turnSet(Coordinate point, drive_directions direction, int speed, e_angle_behavior behavior);
 void turnSetRelative(double theta, int speed);
+void turnSetRelative(double theta, int speed, e_angle_behavior behavior);
 
 // Swing set wrappers
 void swingSet(ez::e_swing side, double theta, double main, double opp, ez::e_angle_behavior behavior);

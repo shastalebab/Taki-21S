@@ -1,5 +1,4 @@
 #include "main.h"
-#include "subsystems.hpp"
 
 // Chassis constructor
 ez::Drive chassis(
@@ -30,17 +29,17 @@ void initialize() {
 	auton_sel.selector_populate({{red_goalrush, "red_goalrush", "red 4 + 1 + 1 pos", red},
 								 {red_5pos, "red_5pos", "red 5 + 1 pos", red},
 								 {red_solowp, "red_solowp", "red negative solo win point", red},
-								 {red_6neg, "red_6neg", "red 6 ring neg", red},
-								 {red_7neg, "red_7neg", "red 6 + 1 ring neg", red},
+								 {red_7neg, "red_7neg", "red 5 + 1 + 1 ring neg", red},
+								 {red_7greed, "red_7greed", "red 6 + 1 ring neg", red},
 								 {blue_goalrush, "blue_goalrush", "blue 4 + 1 + 1 pos", blue},
 								 {blue_5pos, "blue_5pos", "blue 5 + 1 pos", blue},
 								 {blue_solowp, "blue_solowp", "blue negative solo win point", blue},
-								 {blue_6neg, "blue_6neg", "blue 6 ring neg", blue},
 								 {blue_7neg, "blue_7neg", "blue 6 + 1 ring neg", blue},
+								 {blue_7greed, "blue_7greed", "blue 5 + 1 + 1 ring neg", blue},
 								 {red_testauto, "red_testauto", "test color sort red", red},
 								 {blue_testauto, "blue_testauto", "test color sort blue", blue},
 								 {move_forward, "move_forward", "move forward 24 inches", gray},
-								{testexitconditions, "test exit", "test exit conditions", lv_color_hex(0x00FF00)}});
+								{tuning, "test exit", "test exit conditions", lv_color_hex(0x52f160)}});
 
 	// Initialize chassis and auton selector
 	chassis.initialize();
@@ -78,7 +77,6 @@ void autonomous() {
 	if(delayBool) delayMillis(1000);
 	antiJamDisabled(false);
 	auton_sel.selector_callback();	// Calls selected auton from autonomous selector
-	matchColor = allianceColor;
 }
 
 void opcontrol() {

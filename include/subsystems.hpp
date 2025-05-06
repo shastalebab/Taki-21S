@@ -21,30 +21,6 @@ inline ez::Piston mogomech('A');
 inline ez::Piston doinker('C');
 inline ez::Piston actuatedIntake('D');
 
-void setIntake(int speed);
-void setIndexing();
-void setDunker(int position);
-void setDunker(int position, int max_speed);
-void resetDunker();
-void setMogo(bool state);
-void primeMogo();
-void setDoinker(bool state);
-void getPos();
-void setActuatedIntake(bool state);
-void antiJamDisabled(bool state);
-void sendHaptic(string input);
-void colorToggle();
-
-void setIntakeOp();
-void setDunkerOp();
-void setMogoOp();
-void setDoinkerOp();
-
-void colorTask();
-void mogoTask();
-void dunkerTask();
-void unjamTask();
-
 enum class Colors {
     RED = 0,
     BLUE = 1,
@@ -58,3 +34,28 @@ enum class AutoMogo {
 
 extern Colors allianceColor;
 extern Colors matchColor;
+
+void setIntake(int speed);
+void setIndexing();
+void setDunker(int position);
+void setDunker(int position, int max_speed);
+void resetDunker();
+void setMogo(bool state);
+void primeMogo();
+void setDoinker(bool state);
+void getPos();
+void setActuatedIntake(bool state);
+void antiJamDisabled(bool state);
+void setAlliance(Colors alliance);
+void sendHaptic(string input);
+void colorToggle();
+
+void setIntakeOp();
+void setDunkerOp();
+void setMogoOp();
+void setDoinkerOp();
+
+void colorTask();
+void mogoTask();
+void dunkerTask();
+void unjamTask();
