@@ -70,9 +70,8 @@ void angleCheckTask() {
 			auto target = autonPath.size() > 0 ? autonPath[0].t : 0;
 			auto current = fmod(chassis.drive_imu_get(), 360);
 			if(current < 0) current += 360;
-			lv_label_set_text(
-				angleText,
-				(util::to_string_with_precision(current, 2) + " °" + "\ntarget: " + util::to_string_with_precision(target, 2)).c_str());
+			lv_label_set_text(angleText,
+							  (util::to_string_with_precision(current, 2) + " °" + "\ntarget: " + util::to_string_with_precision(target, 2)).c_str());
 			if(target + 0.15 >= current && target - 0.15 <= current)
 				lv_obj_set_style_bg_color(angleViewer, green, LV_PART_MAIN);
 			else
@@ -105,7 +104,7 @@ void controllerTask() {
 				else
 					pattern = controllerInput;
 			}
-			if(timer % 5 == 0 || controllerInput != "" ) {
+			if(timer % 5 == 0 || controllerInput != "") {
 				master.rumble(pattern.c_str());
 				controllerInput = "";
 				pattern = "";
@@ -283,7 +282,7 @@ static void angleCheckEvent(lv_event_t* e) {
 	lv_obj_add_event_cb(lv_msgbox_get_close_btn(angleViewer), AngleCheckCloseEvent, LV_EVENT_PRESSED, NULL);
 	lv_obj_add_style(lv_msgbox_get_close_btn(angleViewer), &taki, LV_PART_MAIN);
 	lv_obj_add_style(angleViewer, &taki, LV_PART_MAIN);
-	lv_obj_set_style_text_font(angleViewer, &lv_font_montserrat_48, LV_PART_MAIN);
+	lv_obj_set_style_text_font(angleViewer, &lv_font_montserrat_30, LV_PART_MAIN);
 	lv_obj_set_style_text_font(lv_msgbox_get_title(angleViewer), &lv_font_montserrat_14, LV_PART_MAIN);
 	lv_obj_set_style_text_font(lv_msgbox_get_close_btn(angleViewer), &lv_font_montserrat_24, LV_PART_MAIN);
 	lv_obj_set_width(angleViewer, 300);

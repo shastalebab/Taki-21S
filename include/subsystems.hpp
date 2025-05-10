@@ -37,6 +37,7 @@ extern Colors matchColor;
 
 void setIntake(int speed);
 void setIndexing();
+void haltIntake();
 void setDunker(int position);
 void setDunker(int position, int max_speed);
 void resetDunker();

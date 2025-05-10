@@ -42,6 +42,10 @@ void setIntake(int speed) {
 
 void setIndexing() { indexing = true; }
 
+void haltIntake() {
+	intake.move_relative(1200 - fmod(fabs(intake.get_position()), 400), 200);
+}
+
 void setDunker(int position) {
 	if(autonMode != AutonMode::BRAIN) {
 		if(position > dunkerPID.target_get()) {
@@ -130,6 +134,7 @@ void setDunkerOp() {
 		dunkerState %= dunkerStates.size();
 		dunkerPreset = true;
 		usingDunkerTarget = true;
+		resetting = false;
 		if(getDunker() > 30 && dunkerScoringState) dunkerState = 1;
 		if(dunkerState == 0 && dunkerScoringState)
 			resetDunker();
@@ -143,17 +148,20 @@ void setDunkerOp() {
 			usingDunkerTarget = true;
 			dunkerPreset = true;
 			dunkerScoringState = false;
+			resetting = false;
 			setDunker(descoreStates[dunkerState]);
 		} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R2)) {
 			dunker.move(127);
 			setDunker(getDunker());
 			usingDunkerTarget = false;
 			dunkerPreset = false;
+			resetting = false;
 		} else if(master.get_digital(pros::E_CONTROLLER_DIGITAL_R1)) {
 			dunker.move(-127);
 			setDunker(getDunker());
 			usingDunkerTarget = false;
 			dunkerPreset = false;
+			resetting = false;
 		} else if(!dunkerPreset and resetting == false) {
 			usingDunkerTarget = true;
 			dunker.move(0);
@@ -161,8 +169,6 @@ void setDunkerOp() {
 	}
 	if(dunkerPID.target_get() > 270)
 		setDunker(270);
-	else if(dunkerPID.target_get() < 0)
-		resetDunker();
 }
 
 void setMogoOp() { mogomech.button_toggle(master.get_digital(pros::E_CONTROLLER_DIGITAL_Y)); }
